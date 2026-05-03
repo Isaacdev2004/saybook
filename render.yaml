@@ -1,0 +1,16 @@
+# Render Blueprint — https://docs.render.com/docs/blueprint-spec
+# Deploy as Static Site: build the Saybook Vite app from the pnpm workspace root.
+services:
+  - type: web
+    name: saybook
+    runtime: static
+    buildCommand: pnpm install && pnpm --filter @workspace/saybook-app run build
+    staticPublishPath: ./artifacts/saybook-app/dist/public
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+    routes:
+      # Client-side routing (wouter): real files still win over this rule.
+      - type: rewrite
+        source: /*
+        destination: /index.html
