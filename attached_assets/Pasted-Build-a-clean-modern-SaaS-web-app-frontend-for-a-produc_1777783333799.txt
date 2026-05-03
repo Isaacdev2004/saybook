@@ -1,0 +1,90 @@
+Build a clean, modern SaaS web app frontend for a product called “SAYBOOK App”, focused on generating a structured book outline using a system called Double Helix Map (DHM).
+
+🎯 Core Goal
+
+Create a responsive web interface that:
+
+Explains the product
+Displays pricing plans
+Allows users to input data
+Shows generated DHM output in a structured format
+🖥️ Pages / Sections Required
+1. Landing / Sales Page
+Hero section:
+Headline: “Generate High-Quality Book Outlines with AI”
+Subtext explaining DHM concept
+CTA button: “Get Started”
+Pricing Section (3 Plans):
+Basic ($59)
+Standard ($79)
+Founders ($199)
+
+Each plan should display:
+
+DHM outline limits (chapters, revisions)
+Included ebooks/courses
+Upgrade note
+CTA buttons per plan: “Select Plan”
+2. User Input Dashboard
+
+After selecting a plan:
+
+Input fields:
+Book title / idea
+Target audience
+Main goal/message
+Button: “Generate DHM”
+3. DHM Output Page
+
+Display generated structure in a clean grid/table:
+
+Sections:
+
+ARC Structure:
+Awareness (Ch 1–3)
+Resolution (Ch 4–6)
+Call to Action (Ch 7–8)
+
+Each chapter should show:
+
+Chapter title (editable)
+Story of Thesis (SOT)
+Development Syntax (e.g., SYA, ASA, YAA)
+Advice section
+
+Use a table or card layout for clarity.
+
+🎨 UI/UX Requirements
+Clean SaaS design (similar to Stripe / Notion style)
+Mobile responsive
+Soft colors, good spacing
+Use cards, grids, and sections
+Smooth transitions between pages
+⚙️ Tech Requirements
+Use React (preferred) or clean HTML/CSS/JS
+Component-based structure
+Separate components:
+Navbar
+Pricing Cards
+Form Input
+DHM Output Grid
+🧠 Logic (Mock for Now)
+No real AI needed yet
+When user clicks “Generate DHM”:
+Display a predefined sample DHM output
+Structure must match:
+3-part ARC
+Chapter breakdown
+Advice + Narrative columns
+📦 Extras
+Add placeholder for:
+“Watch Demo Video”
+“Download Editable PDF”
+Add upgrade prompt between plans
+🚀 Final Goal
+
+Deliver a working frontend prototype that:
+
+Feels like a real SaaS product
+Demonstrates DHM generation flow
+Is ready for backend/AI integration later
