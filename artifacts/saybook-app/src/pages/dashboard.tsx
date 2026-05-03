@@ -237,7 +237,7 @@ export default function Dashboard() {
                     />
                   </motion.div>
 
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-6 md:items-start">
                     <motion.div custom={1} variants={fieldVariants} initial="hidden" animate="visible">
                       <FormField
                         control={form.control}
@@ -277,8 +277,7 @@ export default function Dashboard() {
                                 <SelectItem value="self-help">Self-help</SelectItem>
                                 <SelectItem value="business">Business</SelectItem>
                                 <SelectItem value="biography">Biography</SelectItem>
-                                <SelectItem value="fiction">Fiction</SelectItem>
-                                <SelectItem value="other">Other</SelectItem>
+                                <SelectItem value="other">Other nonfiction</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -289,6 +288,12 @@ export default function Dashboard() {
                   </div>
 
                   <motion.div custom={3} variants={fieldVariants} initial="hidden" animate="visible">
+                    <p className="text-sm text-muted-foreground -mt-2 md:-mt-1 leading-relaxed">
+                      DHM supports nonfiction book types only — fiction is not included.
+                    </p>
+                  </motion.div>
+
+                  <motion.div custom={4} variants={fieldVariants} initial="hidden" animate="visible">
                     <FormField
                       control={form.control}
                       name="goal"
@@ -310,7 +315,7 @@ export default function Dashboard() {
                   </motion.div>
 
                   <motion.div
-                    custom={4}
+                    custom={5}
                     variants={fieldVariants}
                     initial="hidden"
                     animate="visible"

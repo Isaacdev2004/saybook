@@ -10,7 +10,7 @@ const plans = [
     name: "Basic",
     price: "$59",
     description: "Perfect for getting started with your first book idea.",
-    features: ["1 DHM outline", "3 chapters", "1 revision", "1 ebook"],
+    features: ["1 DHM outline", "Multi-chapter structure (up to 3 chapters)", "1 revision", "1 ebook"],
     badge: null,
     upgrade: "Upgrade to Standard for more chapters and revisions.",
   },
@@ -18,15 +18,24 @@ const plans = [
     name: "Standard",
     price: "$79",
     description: "The complete toolkit for serious authors.",
-    features: ["3 DHM outlines", "8 chapters", "3 revisions", "2 ebooks + 1 course"],
+    features: ["3 DHM outlines", "Multi-chapter structure (up to 8 chapters)", "3 revisions", "2 ebooks + 1 course"],
     badge: "Most Popular",
-    upgrade: "Upgrade to Founders for unlimited access.",
+    upgrade: "Upgrade to Founders to be one of our 50 founders.",
   },
   {
     name: "Founders",
     price: "$199",
-    description: "Unlimited access and priority support for pros.",
-    features: ["Unlimited outlines", "All chapters", "Unlimited revisions", "All resources", "Priority support", "Founders Badge"],
+    description:
+      "Limited to 50 founders — 5 outlines and 5 reviews, priority support, and a lifetime 25% SAYBOOK App subscription discount.",
+    features: [
+      "5 DHM outlines",
+      "5 reviews",
+      "Full multi-chapter structure",
+      "All resources",
+      "Priority support",
+      "Lifetime 25% SAYBOOK App subscription discount",
+      "Founders Badge",
+    ],
     badge: "Best Value",
     upgrade: null,
   },
@@ -168,15 +177,15 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.55 }}
-              className="mt-16 flex flex-wrap items-center justify-center gap-4"
+              className="mt-16 grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-3 max-w-3xl mx-auto"
             >
-              {["8-chapter structure", "3-part ARC system", "Editable output", "PDF export"].map((stat, i) => (
+              {["Multi-chapter structure", "3-part ARC system", "Editable output", "PDF export"].map((stat, i) => (
                 <motion.span
                   key={stat}
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.6 + i * 0.08, duration: 0.4 }}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 border border-border/60 px-4 py-1.5 text-sm text-muted-foreground"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-muted/60 border border-border/60 px-3 sm:px-4 py-1.5 text-sm text-muted-foreground text-center sm:text-left"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
                   {stat}
@@ -257,11 +266,11 @@ export default function Home() {
                 Invest in Your Craft
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Select the plan that fits your writing goals. No subscription — one-time access.
+                Select the plan that fits your writing goals. No current subscription — one-time access.
               </p>
             </FadeInWhenVisible>
 
-            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-center">
+            <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto md:items-stretch">
               {plans.map((plan, i) => (
                 <FadeInWhenVisible key={plan.name} delay={i * 0.1}>
                   <motion.div
@@ -270,7 +279,7 @@ export default function Home() {
                     className="h-full"
                   >
                     <Card
-                      className={`relative flex flex-col h-full ${plan.name === "Standard" ? "border-primary shadow-xl shadow-primary/10 md:-mt-6" : "border-border/60 shadow-md"}`}
+                      className={`relative flex flex-col h-full ${plan.name === "Standard" ? "border-primary shadow-xl shadow-primary/10" : "border-border/60 shadow-md"}`}
                       data-testid={`card-pricing-${plan.name.toLowerCase()}`}
                     >
                       {plan.badge && (
@@ -286,16 +295,18 @@ export default function Home() {
                           </span>
                         </motion.div>
                       )}
-                      <CardHeader className="pt-8">
+                      <CardHeader className="shrink-0 space-y-0 pb-4 pt-8">
                         <CardTitle className="font-serif text-2xl">{plan.name}</CardTitle>
-                        <div className="mt-4 flex items-baseline gap-1">
-                          <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
-                          <span className="text-muted-foreground text-sm font-medium ml-1">one-time</span>
+                        <div className="mt-4 flex flex-wrap items-baseline gap-x-1.5 gap-y-1">
+                          <span className="text-5xl font-extrabold tracking-tight leading-none">{plan.price}</span>
+                          <span className="text-muted-foreground text-sm font-medium">one-time</span>
                         </div>
-                        <CardDescription className="mt-2 text-sm">{plan.description}</CardDescription>
+                        <CardDescription className="mt-3 text-sm leading-snug min-h-[4.75rem] text-pretty">
+                          {plan.description}
+                        </CardDescription>
                       </CardHeader>
-                      <CardContent className="flex-1">
-                        <ul className="space-y-3">
+                      <CardContent className="flex flex-1 flex-col min-h-0 px-6 pb-0 pt-0">
+                        <ul className="space-y-3 shrink-0">
                           {plan.features.map((feature, j) => (
                             <motion.li
                               key={j}
@@ -303,20 +314,21 @@ export default function Home() {
                               whileInView={{ opacity: 1, x: 0 }}
                               viewport={{ once: true }}
                               transition={{ delay: i * 0.08 + j * 0.05 + 0.2 }}
-                              className="flex items-start text-sm"
+                              className="flex items-start gap-3 text-sm"
                             >
-                              <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mr-3 mt-0.5" />
-                              <span className="text-muted-foreground">{feature}</span>
+                              <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                              <span className="text-muted-foreground leading-snug">{feature}</span>
                             </motion.li>
                           ))}
                         </ul>
-                        {plan.upgrade && (
-                          <p className="mt-5 text-xs text-muted-foreground/70 border-t border-border/50 pt-4 italic">
-                            {plan.upgrade}
-                          </p>
-                        )}
+                        <div className="flex-1 min-h-2 shrink-0" aria-hidden />
+                        <div className="shrink-0 border-t border-border/50 pt-4 min-h-[3.5rem]">
+                          {plan.upgrade ? (
+                            <p className="text-xs text-muted-foreground/80 leading-snug italic">{plan.upgrade}</p>
+                          ) : null}
+                        </div>
                       </CardContent>
-                      <CardFooter className="pt-0">
+                      <CardFooter className="mt-auto shrink-0 px-6 pb-8 pt-4">
                         <motion.div className="w-full" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                           <Button
                             className="w-full h-11"
@@ -338,8 +350,8 @@ export default function Home() {
       </main>
 
       <footer className="bg-foreground text-background py-12 border-t border-border">
-        <div className="container max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
+        <div className="container max-w-6xl mx-auto px-4 md:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6 text-center md:text-left">
+          <div className="flex items-center gap-2 justify-center md:justify-start">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="font-serif font-bold text-xl tracking-tight">SAYBOOK</span>
           </div>
