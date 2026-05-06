@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from "react";
+import type { DHMResult } from "@workspace/dhm-engine";
 
 export interface BookData {
   title: string;
@@ -6,6 +7,8 @@ export interface BookData {
   goal: string;
   genre: string;
   plan: string;
+  /** Present after generation; optional for older client sessions */
+  dhm?: DHMResult;
 }
 
 interface AppContextType {

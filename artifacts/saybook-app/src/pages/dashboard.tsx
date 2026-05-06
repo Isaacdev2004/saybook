@@ -13,6 +13,8 @@ import { useAppContext } from "@/lib/store";
 import { ArrowLeft, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
+import { generateDHM, getPlanLimits } from "@workspace/dhm-engine";
+import { PLAN_STORAGE_KEY } from "@/lib/planStorage";
 
 const formSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters."),
@@ -28,7 +30,7 @@ const fieldVariants = {
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: i * 0.09 + 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    transition: { delay: i * 0.09 + 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -51,7 +53,14 @@ export default function Dashboard() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const planParam = params.get("plan");
-    if (planParam) setPlan(planParam);
+    if (planParam) {
+      const next = planParam.toLowerCase();
+      setPlan(next);
+      localStorage.setItem(PLAN_STORAGE_KEY, next);
+      return;
+    }
+    const stored = localStorage.getItem(PLAN_STORAGE_KEY);
+    if (stored) setPlan(stored);
   }, []);
 
   const form = useForm<FormValues>({
@@ -69,7 +78,9 @@ export default function Dashboard() {
           clearInterval(interval);
           setDone(true);
           setTimeout(() => {
-            setBookData({ ...values, plan });
+            localStorage.setItem(PLAN_STORAGE_KEY, plan);
+            const dhm = generateDHM({ ...values, plan });
+            setBookData({ ...values, plan, dhm });
             setLocation("/output");
           }, 700);
           return prev;
@@ -195,9 +206,18 @@ export default function Dashboard() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="mt-4 inline-flex items-center rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary"
+            className="mt-4 flex flex-col gap-1"
           >
-            <span className="capitalize">{plan} Plan Selected</span>
+            <span className="inline-flex items-center w-fit rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-sm font-medium text-primary capitalize">
+              {plan} plan selected
+            </span>
+            <p className="text-xs text-muted-foreground max-w-xl">
+              This outline uses{" "}
+              <strong>{getPlanLimits(plan).chapters} chapters</strong>
+              {getPlanLimits(plan).revisions === "custom"
+                ? " and a customizable revision cadence (Founders)."
+                : ` and up to ${getPlanLimits(plan).revisions} revision${getPlanLimits(plan).revisions === 1 ? "" : "s"} on your plan (tracking coming later).`}
+            </p>
           </motion.div>
         </motion.div>
 
