@@ -9,6 +9,7 @@ import { generateDHM, normalizePlan } from "@workspace/dhm-engine";
 import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "wouter";
+import { downloadDHMPdf } from "@/lib/exportDHMPdf";
 
 export default function Output() {
   const [, setLocation] = useLocation();
@@ -60,6 +61,11 @@ export default function Output() {
     });
   }, [bookData, setBookData]);
 
+  const handleDownloadPdf = useCallback(() => {
+    if (!bookData?.dhm) return;
+    downloadDHMPdf(bookData, bookData.dhm, editedTitles);
+  }, [bookData, editedTitles]);
+
   if (!bookData || !bookData.dhm) return null;
 
   const { dhm } = bookData;
@@ -96,7 +102,13 @@ export default function Output() {
             </Button>
           </div>
           <motion.div whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}>
-            <Button size="lg" className="shadow-md shadow-primary/15 w-full sm:w-auto" data-testid="button-download-pdf">
+            <Button
+              size="lg"
+              type="button"
+              className="shadow-md shadow-primary/15 w-full sm:w-auto"
+              data-testid="button-download-pdf"
+              onClick={handleDownloadPdf}
+            >
               <Download className="mr-2 h-5 w-5" />
               Download Editable PDF
             </Button>
