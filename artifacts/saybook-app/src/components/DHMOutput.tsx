@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { FileText, Lightbulb } from "lucide-react";
+import { BookMarked, FileText, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import type { DHMArc, DHMChapter } from "@workspace/dhm-engine";
 
@@ -102,9 +102,9 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                     >
                       <Card className="border-border/70 overflow-hidden group cursor-default" data-testid={`card-chapter-${chapter.num}`}>
                         <CardHeader className="pb-3 bg-muted/20 border-b border-border/50">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-2">
+                          <div className="flex items-start justify-between gap-4 flex-wrap">
+                            <div className="flex-1 min-w-[12rem]">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-foreground text-background text-xs font-bold font-mono">
                                   {chapter.num}
                                 </span>
@@ -120,30 +120,66 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                               />
                             </div>
                             <motion.div
-                              whileHover={{ scale: 1.1 }}
-                              className="shrink-0 flex items-center h-9 px-3 rounded-lg bg-background border border-border text-foreground font-mono text-xs font-bold shadow-sm"
-                              title="Narrative Syntax"
+                              whileHover={{ scale: 1.02 }}
+                              className="shrink-0 flex flex-col items-end gap-1"
+                              title="Full chapter syntax matrix (strands separated by /)"
                             >
-                              {chapter.syntax}
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Syntax matrix</span>
+                              <div className="flex items-center min-h-9 px-3 rounded-lg bg-background border border-border text-foreground font-mono text-xs font-bold shadow-sm max-w-[220px] text-right break-all">
+                                {chapter.chapterSyntaxMatrix}
+                              </div>
                             </motion.div>
                           </div>
                         </CardHeader>
 
-                        <CardContent className="pt-5 grid sm:grid-cols-2 gap-6">
-                          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.15 }}>
+                        <CardContent className="pt-5 space-y-6">
+                          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.12 }}>
                             <div className="flex items-center gap-2 mb-2.5 text-sm font-semibold text-foreground">
-                              <FileText className="h-4 w-4 text-primary" />
-                              Statement of Theme
+                              <BookMarked className="h-4 w-4 text-primary" />
+                              Chapter Theme
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed pl-5 border-l-2 border-primary/20">{chapter.sot}</p>
+                            <p className="text-sm text-muted-foreground leading-relaxed pl-5 border-l-2 border-primary/20">{chapter.chapterTheme}</p>
                           </motion.div>
-                          <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.22 }}>
-                            <div className="flex items-center gap-2 mb-2.5 text-sm font-semibold text-foreground">
-                              <Lightbulb className="h-4 w-4 text-primary" />
-                              Editorial Advice
+
+                          <div className="space-y-5">
+                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                              <Layers className="h-3.5 w-3.5" />
+                              Strands & SAY points
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed pl-5 border-l-2 border-border">{chapter.advice}</p>
-                          </motion.div>
+                            {chapter.strands.map((strand) => (
+                              <div
+                                key={`${chapter.num}-${strand.index}`}
+                                className="rounded-xl border border-border/80 bg-muted/10 p-4 space-y-4"
+                              >
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">Strand {strand.index}</span>
+                                  <span className="font-mono text-sm font-bold px-2 py-0.5 rounded bg-background border border-border">{strand.pattern}</span>
+                                  <span className="text-xs text-muted-foreground">· three SAY letters = one subheading block</span>
+                                </div>
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                  {strand.points.map((pt, idx) => (
+                                    <div
+                                      key={`${chapter.num}-${strand.index}-${idx}`}
+                                      className="rounded-lg border border-border/60 bg-background p-3 shadow-sm"
+                                    >
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <span className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center font-mono text-xs font-bold">
+                                          {pt.code}
+                                        </span>
+                                        <span className="text-xs font-semibold text-foreground leading-tight">{pt.label}</span>
+                                      </div>
+                                      <p className="text-xs font-medium text-foreground mb-1.5">Point theme</p>
+                                      <p className="text-xs text-muted-foreground leading-relaxed mb-3">{pt.pointTheme}</p>
+                                      <div className="flex items-start gap-1.5 text-muted-foreground">
+                                        <FileText className="h-3 w-3 shrink-0 mt-0.5" />
+                                        <p className="text-xs leading-relaxed">{pt.guidance}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </CardContent>
                       </Card>
                     </motion.div>

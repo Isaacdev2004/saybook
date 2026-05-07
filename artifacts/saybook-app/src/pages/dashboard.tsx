@@ -13,17 +13,51 @@ import { useAppContext } from "@/lib/store";
 import { ArrowLeft, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
-import { generateDHM, getPlanLimits } from "@workspace/dhm-engine";
+import { generateDHM, getPlanLimits, normalizeChapterSyntaxMatrix } from "@workspace/dhm-engine";
 import { PLAN_STORAGE_KEY } from "@/lib/planStorage";
 
-const formSchema = z.object({
-  title: z.string().min(2, "Title must be at least 2 characters."),
-  audience: z.string().min(2, "Target audience must be at least 2 characters."),
-  goal: z.string().min(10, "Please provide a bit more detail about your goal."),
-  genre: z.string().min(1, "Please select a genre."),
-});
+const SYNTAX_PRESETS = ["SYA", "SYA/YAA/AYA", "SYA/SYA/SYA", "custom"] as const;
+
+const formSchema = z
+  .object({
+    title: z.string().min(2, "Title must be at least 2 characters."),
+    audience: z.string().min(2, "Target audience must be at least 2 characters."),
+    goal: z.string().min(10, "Please provide a bit more detail about your goal."),
+    genre: z.string().min(1, "Please select a genre."),
+    chapterSyntaxPreset: z.enum(SYNTAX_PRESETS),
+    chapterSyntaxCustom: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.chapterSyntaxPreset !== "custom") return;
+    const raw = (data.chapterSyntaxCustom ?? "").trim();
+    if (!raw) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Enter your chapter matrix (e.g. SYA/YAA/AYA).",
+        path: ["chapterSyntaxCustom"],
+      });
+      return;
+    }
+    const cleaned = raw.toUpperCase().replace(/\s+/g, "");
+    const parts = cleaned.split("/").filter(Boolean);
+    const ok = parts.length > 0 && parts.every((p) => /^[SYA]{3}$/.test(p));
+    if (!ok) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Each strand is exactly 3 letters (S, Y, or A), separated by /. Example: SYA/YAA/AYA",
+        path: ["chapterSyntaxCustom"],
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof formSchema>;
+
+function resolvedChapterSyntaxMatrix(values: FormValues): string {
+  if (values.chapterSyntaxPreset === "custom") {
+    return normalizeChapterSyntaxMatrix(values.chapterSyntaxCustom);
+  }
+  return values.chapterSyntaxPreset;
+}
 
 const fieldVariants = {
   hidden: { opacity: 0, y: 16 },
@@ -65,8 +99,17 @@ export default function Dashboard() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { title: "", audience: "", goal: "", genre: "" },
+    defaultValues: {
+      title: "",
+      audience: "",
+      goal: "",
+      genre: "",
+      chapterSyntaxPreset: "SYA",
+      chapterSyntaxCustom: "",
+    },
   });
+
+  const syntaxPreset = form.watch("chapterSyntaxPreset");
 
   const onSubmit = (values: FormValues) => {
     setIsSubmitting(true);
@@ -79,8 +122,24 @@ export default function Dashboard() {
           setDone(true);
           setTimeout(() => {
             localStorage.setItem(PLAN_STORAGE_KEY, plan);
-            const dhm = generateDHM({ ...values, plan });
-            setBookData({ ...values, plan, dhm });
+            const chapterSyntaxMatrix = resolvedChapterSyntaxMatrix(values);
+            const dhm = generateDHM({
+              title: values.title,
+              audience: values.audience,
+              goal: values.goal,
+              genre: values.genre,
+              plan,
+              chapterSyntaxMatrix,
+            });
+            setBookData({
+              title: values.title,
+              audience: values.audience,
+              goal: values.goal,
+              genre: values.genre,
+              plan,
+              chapterSyntaxMatrix,
+              dhm,
+            });
             setLocation("/output");
           }, 700);
           return prev;
@@ -286,7 +345,7 @@ export default function Dashboard() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Genre</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger className="h-12 bg-background" data-testid="select-genre">
                                   <SelectValue placeholder="Select a genre" />
@@ -316,6 +375,61 @@ export default function Dashboard() {
                   <motion.div custom={4} variants={fieldVariants} initial="hidden" animate="visible">
                     <FormField
                       control={form.control}
+                      name="chapterSyntaxPreset"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Chapter syntax matrix</FormLabel>
+                          <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                            Choose how many strands (subheadings) appear in each chapter and the SAY order per strand. Letters: S = Storytelling, Y =
+                            Yielded Evidence, A = Advice. Example 3×3:{" "}
+                            <span className="font-mono text-xs">SYA/YAA/AYA</span>.
+                          </p>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-12 bg-background" data-testid="select-chapter-syntax">
+                                <SelectValue placeholder="Select matrix" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="SYA">1 strand — SYA (3 SAY points)</SelectItem>
+                              <SelectItem value="SYA/YAA/AYA">3 strands — SYA / YAA / AYA (3×3)</SelectItem>
+                              <SelectItem value="SYA/SYA/SYA">3 strands — SYA / SYA / SYA (same pattern × 3)</SelectItem>
+                              <SelectItem value="custom">Custom matrix…</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+
+                  {syntaxPreset === "custom" && (
+                    <motion.div custom={5} variants={fieldVariants} initial="hidden" animate="visible">
+                      <FormField
+                        control={form.control}
+                        name="chapterSyntaxCustom"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Custom chapter matrix</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="e.g. SYA/YAA/AYA"
+                                {...field}
+                                data-testid="input-chapter-syntax-custom"
+                                className="h-12 bg-background font-mono text-sm"
+                              />
+                            </FormControl>
+                            <p className="text-xs text-muted-foreground">Slash-separated strands; each strand is exactly three letters (S, Y, or A).</p>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </motion.div>
+                  )}
+
+                  <motion.div custom={6} variants={fieldVariants} initial="hidden" animate="visible">
+                    <FormField
+                      control={form.control}
                       name="goal"
                       render={({ field }) => (
                         <FormItem>
@@ -335,7 +449,7 @@ export default function Dashboard() {
                   </motion.div>
 
                   <motion.div
-                    custom={5}
+                    custom={7}
                     variants={fieldVariants}
                     initial="hidden"
                     animate="visible"

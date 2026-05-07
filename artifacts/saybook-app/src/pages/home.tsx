@@ -43,7 +43,11 @@ const plans = [
 
 const features = [
   { icon: PenTool, title: "Structured Precision", desc: "Every chapter serves a specific purpose in the Awareness, Resolution, and Call to Action arcs." },
-  { icon: Layout, title: "Narrative Syntax", desc: "Our proprietary syntax tags guide the tone and structure of each chapter with editorial confidence." },
+  {
+    icon: Layout,
+    title: "Narrative Syntax",
+    desc: 'Our proprietary syntax tags guide the tone and structure of each chapter based on your chosen arrangement of Storytelling , Advice and Yielded Evidence (or "SAY" points).',
+  },
   { icon: BookOpen, title: "Editorial Advice", desc: "Get actionable writing advice tailored to the specific beat of your book — chapter by chapter." },
 ];
 

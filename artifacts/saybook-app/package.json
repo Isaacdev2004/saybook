@@ -76,6 +76,7 @@
     "zod": "catalog:"
   },
   "dependencies": {
+    "docx": "^9.6.1",
     "jspdf": "^4.2.1"
   }
 }

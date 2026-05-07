@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import type { BookData } from "@/lib/store";
 import type { DHMChapter, DHMResult } from "@workspace/dhm-engine";
+import { SYNTAX_KEY_BLOCK } from "@workspace/dhm-engine";
 
 const MM_MARGIN = 14;
 const PAGE_H = 297;
@@ -47,6 +48,13 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
   writeLines(`Audience: ${bookData.audience}`, 10, "normal");
   writeLines(`Genre: ${bookData.genre}`, 10, "normal");
   writeLines(`Main goal: ${bookData.goal}`, 10, "normal");
+  writeLines(`Chapter syntax matrix: ${dhm.chapterSyntaxMatrix}`, 10, "bold");
+  y += 4;
+
+  writeLines("Syntax KEY", 12, "bold");
+  for (const line of SYNTAX_KEY_BLOCK.split("\n")) {
+    writeLines(line, 9, "normal");
+  }
   y += 4;
 
   const sections: { label: string; chapters: DHMChapter[] }[] = [
@@ -64,14 +72,30 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
 
     for (const ch of chapters) {
       const title = editedTitles[ch.num] ?? ch.title;
-      ensureBottom(LINE_MM * 8);
+      ensureBottom(LINE_MM * 6);
       writeLines(`Chapter ${ch.num}: ${title}`, 11, "bold");
-      writeLines(`DHM syntax: ${ch.syntax}`, 10, "bold");
-      writeLines(`Statement of theme: ${ch.sot}`, 10, "normal");
-      writeLines(`Editorial advice: ${ch.advice}`, 10, "normal");
-      y += 4;
+      writeLines(`Chapter syntax matrix: ${ch.chapterSyntaxMatrix}`, 10, "bold");
+      writeLines(`Chapter theme: ${ch.chapterTheme}`, 10, "normal");
+      y += 2;
+
+      for (const strand of ch.strands) {
+        ensureBottom(LINE_MM * 5);
+        writeLines(`Strand ${strand.index} · ${strand.pattern}`, 10, "bold");
+        for (const pt of strand.points) {
+          writeLines(`${pt.code} (${pt.label})`, 9, "bold");
+          writeLines(`Point theme: ${pt.pointTheme}`, 9, "normal");
+          writeLines(`Guidance: ${pt.guidance}`, 9, "normal");
+          y += 1;
+        }
+        y += 2;
+      }
+      y += 3;
     }
   }
+
+  ensureBottom(LINE_MM * 8);
+  writeLines("Story of Thesis", 13, "bold");
+  writeLines(dhm.storyOfThesis, 10, "normal");
 
   doc.save(`${sanitizeFilename(bookData.title)}-dhm.pdf`);
 }

@@ -5,11 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DHMOutput } from "@/components/DHMOutput";
-import { generateDHM, normalizePlan } from "@workspace/dhm-engine";
-import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp } from "lucide-react";
+import { generateDHM, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
+import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp, FileType2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { Link } from "wouter";
 import { downloadDHMPdf } from "@/lib/exportDHMPdf";
+import { downloadDHMDocx } from "@/lib/exportDHMDocx";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+function dhmMatchesCurrentEngine(dhm: DHMResult | undefined): boolean {
+  if (!dhm || typeof dhm.storyOfThesis !== "string") return false;
+  const all = [...dhm.arc.awareness, ...dhm.arc.resolution, ...dhm.arc.callToAction];
+  if (all.length === 0) return true;
+  const ch = all[0];
+  return Array.isArray(ch.strands) && ch.strands.length > 0;
+}
 
 export default function Output() {
   const [, setLocation] = useLocation();
@@ -22,18 +32,19 @@ export default function Output() {
   }, [bookData, setLocation]);
 
   useEffect(() => {
-    if (!bookData?.dhm && bookData) {
-      setBookData({
-        ...bookData,
-        dhm: generateDHM({
-          title: bookData.title,
-          audience: bookData.audience,
-          goal: bookData.goal,
-          genre: bookData.genre,
-          plan: bookData.plan,
-        }),
-      });
-    }
+    if (!bookData) return;
+    if (dhmMatchesCurrentEngine(bookData.dhm)) return;
+    setBookData({
+      ...bookData,
+      dhm: generateDHM({
+        title: bookData.title,
+        audience: bookData.audience,
+        goal: bookData.goal,
+        genre: bookData.genre,
+        plan: bookData.plan,
+        chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
+      }),
+    });
   }, [bookData, setBookData]);
 
   useEffect(() => {
@@ -57,6 +68,7 @@ export default function Output() {
         goal: bookData.goal,
         genre: bookData.genre,
         plan: bookData.plan,
+        chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
       }),
     });
   }, [bookData, setBookData]);
@@ -66,7 +78,12 @@ export default function Output() {
     downloadDHMPdf(bookData, bookData.dhm, editedTitles);
   }, [bookData, editedTitles]);
 
-  if (!bookData || !bookData.dhm) return null;
+  const handleDownloadDocx = useCallback(async () => {
+    if (!bookData?.dhm) return;
+    await downloadDHMDocx(bookData, bookData.dhm, editedTitles);
+  }, [bookData, editedTitles]);
+
+  if (!bookData?.dhm || !dhmMatchesCurrentEngine(bookData.dhm)) return null;
 
   const { dhm } = bookData;
   const planKey = normalizePlan(bookData.plan);
@@ -101,18 +118,33 @@ export default function Output() {
               Regenerate outline
             </Button>
           </div>
-          <motion.div whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }}>
-            <Button
-              size="lg"
-              type="button"
-              className="shadow-md shadow-primary/15 w-full sm:w-auto"
-              data-testid="button-download-pdf"
-              onClick={handleDownloadPdf}
-            >
-              <Download className="mr-2 h-5 w-5" />
-              Download Editable PDF
-            </Button>
-          </motion.div>
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <motion.div whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }} className="flex-1 sm:flex-none">
+              <Button
+                size="lg"
+                type="button"
+                variant="outline"
+                className="shadow-md shadow-primary/10 w-full sm:w-auto"
+                data-testid="button-download-pdf"
+                onClick={handleDownloadPdf}
+              >
+                <Download className="mr-2 h-5 w-5" />
+                Download PDF
+              </Button>
+            </motion.div>
+            <motion.div whileHover={{ scale: 1.04, y: -1 }} whileTap={{ scale: 0.97 }} className="flex-1 sm:flex-none">
+              <Button
+                size="lg"
+                type="button"
+                className="shadow-md shadow-primary/15 w-full sm:w-auto"
+                data-testid="button-download-docx"
+                onClick={() => void handleDownloadDocx()}
+              >
+                <FileType2 className="mr-2 h-5 w-5" />
+                Google Docs–ready (.docx)
+              </Button>
+            </motion.div>
+          </div>
         </motion.div>
 
         {planKey === "basic" && (
@@ -153,7 +185,7 @@ export default function Output() {
               {planKey} · {dhm.chapterLimit} chapters
             </Badge>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 relative">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Target Audience</p>
               <p className="text-foreground font-medium">{bookData.audience}</p>
@@ -163,10 +195,14 @@ export default function Output() {
               <p className="text-foreground font-medium capitalize">{bookData.genre}</p>
             </div>
             <div>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Chapter syntax matrix</p>
+              <p className="text-foreground font-medium font-mono text-sm">{dhm.chapterSyntaxMatrix}</p>
+            </div>
+            <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Plan allowance</p>
               <p className="text-foreground font-medium">{revisionLabel}</p>
             </div>
-            <div className="md:col-span-3 pt-5 border-t border-border/50">
+            <div className="md:col-span-2 lg:col-span-4 pt-5 border-t border-border/50">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2">Main Goal / Message</p>
               <p className="text-foreground text-lg leading-relaxed font-serif italic">"{bookData.goal}"</p>
             </div>
@@ -186,6 +222,25 @@ export default function Output() {
         </motion.div>
 
         <DHMOutput arc={dhm.arc} editedTitles={editedTitles} onTitleEdit={handleTitleEdit} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.12 }}
+          className="mt-16"
+        >
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background shadow-md">
+            <CardHeader>
+              <CardTitle className="font-serif text-2xl">Story of Thesis</CardTitle>
+              <CardDescription>
+                Your chapter themes woven into one short book-level paragraph (discourse markers tie the arc together). Upload your .docx to Google Docs to edit further.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-foreground leading-relaxed font-serif text-lg">{dhm.storyOfThesis}</p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <div className="h-20" />
       </div>

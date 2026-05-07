@@ -7,6 +7,8 @@ export interface BookData {
   goal: string;
   genre: string;
   plan: string;
+  /** Slash-separated chapter syntax matrix (e.g. SYA or SYA/YAA/AYA); defaults to SYA when absent */
+  chapterSyntaxMatrix?: string;
   /** Present after generation; optional for older client sessions */
   dhm?: DHMResult;
 }
