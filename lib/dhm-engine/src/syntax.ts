@@ -21,6 +21,13 @@ export function labelForCode(char: string): string {
   return char;
 }
 
+/** Section title for point-level themes (matches client revision sheet). */
+export function pointThemeHeading(code: SAYCode): string {
+  if (code === "S") return "Story theme";
+  if (code === "Y") return "Yielded Evidence theme";
+  return "Advice theme";
+}
+
 /** Validates segments like SYA/YAA/AYA — each segment exactly three chars from {S,Y,A}. */
 export function normalizeChapterSyntaxMatrix(raw: string | undefined): string {
   if (!raw || !raw.trim()) return "SYA";

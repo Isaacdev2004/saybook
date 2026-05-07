@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { BookMarked, FileText, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import type { DHMArc, DHMChapter } from "@workspace/dhm-engine";
+import { pointThemeHeading, type DHMArc, type DHMChapter } from "@workspace/dhm-engine";
 
 /** Narrow keyof DHMArc for stable React keys (TS keyof inference quirks). */
 type ArcSectionKey = keyof DHMArc & ("awareness" | "resolution" | "callToAction");
@@ -168,7 +168,7 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                                         </span>
                                         <span className="text-xs font-semibold text-foreground leading-tight">{pt.label}</span>
                                       </div>
-                                      <p className="text-xs font-medium text-foreground mb-1.5">Point theme</p>
+                                      <p className="text-xs font-medium text-foreground mb-1.5">{pointThemeHeading(pt.code)}</p>
                                       <p className="text-xs text-muted-foreground leading-relaxed mb-3">{pt.pointTheme}</p>
                                       <div className="flex items-start gap-1.5 text-muted-foreground">
                                         <FileText className="h-3 w-3 shrink-0 mt-0.5" />

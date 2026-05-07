@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import type { BookData } from "@/lib/store";
 import type { DHMChapter, DHMResult } from "@workspace/dhm-engine";
-import { SYNTAX_KEY_BLOCK } from "@workspace/dhm-engine";
+import { SYNTAX_KEY_BLOCK, pointThemeHeading } from "@workspace/dhm-engine";
 
 const MM_MARGIN = 14;
 const PAGE_H = 297;
@@ -83,7 +83,7 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
         writeLines(`Strand ${strand.index} · ${strand.pattern}`, 10, "bold");
         for (const pt of strand.points) {
           writeLines(`${pt.code} (${pt.label})`, 9, "bold");
-          writeLines(`Point theme: ${pt.pointTheme}`, 9, "normal");
+          writeLines(`${pointThemeHeading(pt.code)}: ${pt.pointTheme}`, 9, "normal");
           writeLines(`Guidance: ${pt.guidance}`, 9, "normal");
           y += 1;
         }

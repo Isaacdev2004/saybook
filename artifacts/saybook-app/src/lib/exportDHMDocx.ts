@@ -7,7 +7,7 @@ import {
 } from "docx";
 import type { BookData } from "@/lib/store";
 import type { DHMChapter, DHMResult } from "@workspace/dhm-engine";
-import { SYNTAX_KEY_BLOCK } from "@workspace/dhm-engine";
+import { SYNTAX_KEY_BLOCK, pointThemeHeading } from "@workspace/dhm-engine";
 
 function sanitizeFilename(title: string): string {
   const s = title
@@ -65,7 +65,7 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
         blocks.push(pHeading(`Strand ${strand.index} · ${strand.pattern}`, HeadingLevel.HEADING_3));
         for (const pt of strand.points) {
           blocks.push(pBody(`${pt.code} (${pt.label})`, true));
-          blocks.push(pBody(`Point theme: ${pt.pointTheme}`));
+          blocks.push(pBody(`${pointThemeHeading(pt.code)}: ${pt.pointTheme}`));
           blocks.push(pBody(`Guidance: ${pt.guidance}`));
         }
       }
