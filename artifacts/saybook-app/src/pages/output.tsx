@@ -1,5 +1,5 @@
 import { useAppContext } from "@/lib/store";
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { DHMOutput } from "@/components/DHMOutput";
 import { generateDHM, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
 import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp, FileType2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
-import { Link } from "wouter";
 import { downloadDHMPdf } from "@/lib/exportDHMPdf";
 import { downloadDHMDocx } from "@/lib/exportDHMDocx";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -242,7 +241,10 @@ export default function Output() {
           </Card>
         </motion.div>
 
-        <div className="h-20" />
+        <div className="h-20 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          <Link href="/community/reviews" className="hover:text-foreground underline-offset-4 hover:underline">Leave a review</Link>
+          <Link href="/community/founders" className="hover:text-foreground underline-offset-4 hover:underline">Founders lab</Link>
+        </div>
       </div>
 
       <AnimatePresence>

@@ -1,4 +1,5 @@
-import { useLocation } from "wouter";
+import { Link, useLocation } from "wouter";
+import { PLAN_STORAGE_KEY } from "@/lib/planStorage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, PlayCircle, BookOpen, PenTool, Layout, ArrowRight, Sparkles } from "lucide-react";
@@ -73,7 +74,9 @@ export default function Home() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   const handleSelectPlan = (planName: string) => {
-    setLocation(`/dashboard?plan=${planName.toLowerCase()}`);
+    const key = planName.toLowerCase();
+    localStorage.setItem(PLAN_STORAGE_KEY, key);
+    setLocation(`/dashboard?plan=${key}`);
   };
 
   return (
@@ -90,9 +93,11 @@ export default function Home() {
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="font-serif font-bold text-xl tracking-tight">SAYBOOK</span>
           </div>
-          <nav className="flex items-center gap-6 text-sm font-medium">
+          <nav className="flex items-center gap-4 md:gap-6 text-sm font-medium">
             <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors hidden md:block">How it works</a>
             <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors hidden md:block">Pricing</a>
+            <Link href="/community/reviews" className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">Reviews</Link>
+            <Link href="/community/founders" className="text-muted-foreground hover:text-foreground transition-colors hidden lg:block">Founders lab</Link>
             <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
               <Button size="sm" onClick={() => handleSelectPlan('standard')} data-testid="button-nav-get-started">Get Started</Button>
             </motion.div>
@@ -358,6 +363,10 @@ export default function Home() {
           <div className="flex items-center gap-2 justify-center md:justify-start">
             <BookOpen className="h-6 w-6 text-primary" />
             <span className="font-serif font-bold text-xl tracking-tight">SAYBOOK</span>
+          </div>
+          <div className="flex flex-wrap gap-x-6 gap-y-2 justify-center md:justify-start text-sm">
+            <Link href="/community/reviews" className="text-background/70 hover:text-background transition-colors">Reviews</Link>
+            <Link href="/community/founders" className="text-background/70 hover:text-background transition-colors">Founders lab</Link>
           </div>
           <p className="text-sm text-background/40">
             © {new Date().getFullYear()} SAYBOOK. Crafted for authors.

@@ -47,3 +47,6 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# SAYBOOK community feedback JSON store (API server)
+**/saybook-feedback.json

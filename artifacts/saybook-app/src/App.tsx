@@ -6,6 +6,9 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Dashboard from "@/pages/dashboard";
 import Output from "@/pages/output";
+import CommunityReviews from "@/pages/community-reviews";
+import CommunityFounders from "@/pages/community-founders";
+import AdminCommunity from "@/pages/admin-community";
 import { AppProvider } from "@/lib/store";
 
 const queryClient = new QueryClient();
@@ -16,6 +19,9 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/output" component={Output} />
+      <Route path="/community/reviews" component={CommunityReviews} />
+      <Route path="/community/founders" component={CommunityFounders} />
+      <Route path="/admin/community" component={AdminCommunity} />
       <Route component={NotFound} />
     </Switch>
   );
