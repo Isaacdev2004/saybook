@@ -132,32 +132,33 @@ function buildPointTheme(
   strandIdx: number,
   pointIdx: number,
 ): string {
-  const ct = clampSnippet(chapterTheme, 72);
-  const aud = clampSnippet(audience, 36);
-  const g = clampSnippet(goal, 48);
-  const ord = strandIdx * 3 + pointIdx;
+  const ct = clampSnippet(chapterTheme, 96);
+  const aud = clampSnippet(audience, 46);
+  const g = clampSnippet(goal, 70);
+  const focus = strandFocus(strandIdx);
+  const posture = pointIdx === 0 ? "introduce" : pointIdx === 1 ? "sharpen" : "resolve";
+
   if (code === "S") {
-    const pool = [
-      `Story theme (ties to chapter arc): ${ct}`,
-      `Story beat: show ${aud} a lived moment that dramatizes why "${g}" cannot stay theoretical.`,
-      `Narrative emphasis: foreground stakes before tactics — readers feel why this chapter exists.`,
-    ];
-    return pool[ord % pool.length];
+    return [
+      `Choose a story about ${focus} that makes this chapter theme real: ${ct}`,
+      `Tell a scene where ${aud} tries to ${g} but hits friction around ${focus}; show stakes and emotion, then pivot to the lesson.`,
+      `Use a contrast story (before/after) focused on ${focus}: what changes once the reader treats the theme as non‑negotiable?`,
+    ][(strandIdx + pointIdx) % 3];
   }
+
   if (code === "Y") {
-    const pool = [
-      `Yielded Evidence theme: anchor claims with proof patterns ${aud} respects — data, precedent, or testimony.`,
-      `Evidence beat: demonstrate why "${g}" is credible at this stage of the arc.`,
-      `Credibility theme: stack proof so skepticism softens without sounding defensive.`,
-    ];
-    return pool[ord % pool.length];
+    return [
+      `Include evidence that supports ${posture}d belief in “${g}” through the lens of ${focus}: 1 study/statistic + 1 case example + 1 counterpoint you address.`,
+      `Use research types suited to ${focus}: benchmarks, experiments, expert quotes, or industry reports; end with a clear “what this proves” sentence tied to the chapter theme.`,
+      `Add credibility scaffolding for ${focus}: define the claim, cite proof, show limitations, then restate the chapter theme in stronger terms.`,
+    ][(strandIdx + pointIdx) % 3];
   }
-  const pool = [
-    `Advice theme: translate insight into a doable move aligned with "${g}".`,
-    `Practical beat: give ${aud} one discipline they can repeat before the next strand.`,
-    `Action theme: turn conviction into momentum — clear next step, zero fluff.`,
-  ];
-  return pool[ord % pool.length];
+
+  return [
+    `Give actionable advice for ${aud} around ${focus}: a 3-step move they can do this week to advance “${g}” while honoring the chapter theme.`,
+    `Provide a tool or template for ${focus} (checklist, prompt set, scorecard, workflow); include an example filled in for a realistic scenario.`,
+    `Prescribe a habit + measurement for ${focus}: what to do, how often, what to track, and what “good” looks like when they apply the chapter theme.`,
+  ][(strandIdx + pointIdx) % 3];
 }
 
 function buildPointGuidance(
@@ -171,29 +172,39 @@ function buildPointGuidance(
   const aud = clampSnippet(audience, 40);
   const g = clampSnippet(goal, 44);
   const k = strandIdx + pointIdx + (kind === "awareness" ? 0 : kind === "resolution" ? 3 : 6);
+  const focus = strandFocus(strandIdx);
 
   if (code === "S") {
     const lines = [
-      `Draft narrative tension first: scene, anecdote, or contrast ${aud} recognises.`,
-      `Keep storytelling economical — each paragraph should deepen empathy toward "${g}".`,
-      `Close the storytelling beat with an implicit question that the evidence strand answers.`,
+      `Draft a concrete scene about ${focus}: who, where, what decision, and what went wrong/right for ${aud}.`,
+      `Use one specific moment that spotlights why “${g}” matters; avoid abstract backstory and end with a question the evidence answers.`,
+      `Close the story with a crisp takeaway sentence that restates the chapter theme in plain language.`,
     ];
     return lines[k % lines.length];
   }
   if (code === "Y") {
     const lines = [
-      `Introduce proof that tightens the logical chain toward "${g}".`,
-      `Pair qualitative insight with at least one concrete proof-point ${aud} can verify.`,
-      `Sequence evidence so doubt collapses before advice lands.`,
+      `Choose 2–3 proof types for ${focus} (data/stat, expert, case study). Tie each directly to “${g}” and the chapter theme.`,
+      `Include at least one number or citation-style claim for ${focus}, plus a short example showing it in practice for ${aud}.`,
+      `Address one objection about ${focus} (cost, ethics, accuracy, time) so the advice feels earned.`,
     ];
     return lines[k % lines.length];
   }
   const lines = [
-    `Offer guidance ${aud} can schedule into their week — one principle, one exercise.`,
-    `Mirror objections, then prescribe a habit-sized commitment aligned with "${g}".`,
-    `End this SAY point with a bridge sentence into the next letter in the strand.`,
+    `Give a step-by-step for ${focus}: step 1 setup, step 2 execution, step 3 review; keep it doable in 30–60 minutes.`,
+    `Add one template line the reader can copy/paste for “${g}” (prompt, checklist item, KPI definition) focused on ${focus}.`,
+    `End with a bridge: “Now that ${aud} can handle ${focus}, they’re ready for the next SAY point…”`,
   ];
   return lines[k % lines.length];
+}
+
+function strandFocus(strandIdx: number): string {
+  const pool = [
+    "the reader’s problem and stakes",
+    "the method, workflow, or system they should adopt",
+    "the tools, examples, and measurement that make it stick",
+  ];
+  return pool[strandIdx % pool.length];
 }
 
 function buildStrandsForChapter(
