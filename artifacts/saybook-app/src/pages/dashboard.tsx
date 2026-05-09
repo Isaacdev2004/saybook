@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAppContext } from "@/lib/store";
 import { ArrowLeft, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
@@ -26,6 +27,8 @@ const formSchema = z
     genre: z.string().min(1, "Please select a genre."),
     chapterSyntaxPreset: z.enum(SYNTAX_PRESETS),
     chapterSyntaxCustom: z.string().optional(),
+    syntaxVariation: z.enum(["vary", "fixed"]),
+    syntaxAlwaysLeadWithStory: z.boolean(),
   })
   .superRefine((data, ctx) => {
     if (data.chapterSyntaxPreset !== "custom") return;
@@ -106,6 +109,8 @@ export default function Dashboard() {
       genre: "",
       chapterSyntaxPreset: "SYA",
       chapterSyntaxCustom: "",
+      syntaxVariation: "vary",
+      syntaxAlwaysLeadWithStory: false,
     },
   });
 
@@ -123,6 +128,8 @@ export default function Dashboard() {
           setTimeout(() => {
             localStorage.setItem(PLAN_STORAGE_KEY, plan);
             const chapterSyntaxMatrix = resolvedChapterSyntaxMatrix(values);
+            const syntaxVaryPerChapter = values.syntaxVariation === "vary";
+            const syntaxAlwaysLeadWithStory = values.syntaxAlwaysLeadWithStory;
             const dhm = generateDHM({
               title: values.title,
               audience: values.audience,
@@ -130,6 +137,8 @@ export default function Dashboard() {
               genre: values.genre,
               plan,
               chapterSyntaxMatrix,
+              syntaxVaryPerChapter,
+              syntaxAlwaysLeadWithStory,
             });
             setBookData({
               title: values.title,
@@ -138,6 +147,8 @@ export default function Dashboard() {
               genre: values.genre,
               plan,
               chapterSyntaxMatrix,
+              syntaxVaryPerChapter,
+              syntaxAlwaysLeadWithStory,
               dhm,
             });
             setLocation("/output");
@@ -430,6 +441,54 @@ export default function Dashboard() {
                   <motion.div custom={6} variants={fieldVariants} initial="hidden" animate="visible">
                     <FormField
                       control={form.control}
+                      name="syntaxVariation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Syntax across chapters</FormLabel>
+                          <p className="text-sm text-muted-foreground mb-2 leading-relaxed">
+                            Vary the SAY order from your template by chapter (e.g. SYA → YAS → ASY), or keep the exact same matrix every chapter.
+                          </p>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-12 bg-background">
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="vary">Vary by chapter (recommended)</SelectItem>
+                              <SelectItem value="fixed">Same matrix every chapter</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+
+                  <motion.div custom={7} variants={fieldVariants} initial="hidden" animate="visible">
+                    <FormField
+                      control={form.control}
+                      name="syntaxAlwaysLeadWithStory"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start gap-3 space-y-0 rounded-lg border border-border/60 p-4">
+                          <FormControl>
+                            <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="font-medium cursor-pointer">Always start each strand with Story (S)</FormLabel>
+                            <p className="text-sm text-muted-foreground">
+                              When varying, each strand stays <span className="font-mono text-xs">S</span>-first and alternates{" "}
+                              <span className="font-mono text-xs">SYA</span> / <span className="font-mono text-xs">SAY</span>.
+                            </p>
+                          </div>
+                        </FormItem>
+                      )}
+                    />
+                  </motion.div>
+
+                  <motion.div custom={8} variants={fieldVariants} initial="hidden" animate="visible">
+                    <FormField
+                      control={form.control}
                       name="goal"
                       render={({ field }) => (
                         <FormItem>
@@ -449,7 +508,7 @@ export default function Dashboard() {
                   </motion.div>
 
                   <motion.div
-                    custom={7}
+                    custom={9}
                     variants={fieldVariants}
                     initial="hidden"
                     animate="visible"

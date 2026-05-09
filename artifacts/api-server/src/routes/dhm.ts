@@ -10,6 +10,8 @@ const GenerateDHMBodySchema = z.object({
   plan: z.string().min(1),
   /** Slash-separated strands of three SAY letters (S/Y/A), e.g. SYA or SYA/YAA/AYA */
   chapterSyntaxMatrix: z.string().optional(),
+  syntaxVaryPerChapter: z.boolean().optional(),
+  syntaxAlwaysLeadWithStory: z.boolean().optional(),
 });
 
 const router: IRouter = Router();
@@ -33,6 +35,8 @@ router.post("/dhm", (req, res) => {
     genre: body.genre,
     plan: body.plan,
     chapterSyntaxMatrix: body.chapterSyntaxMatrix,
+    syntaxVaryPerChapter: body.syntaxVaryPerChapter,
+    syntaxAlwaysLeadWithStory: body.syntaxAlwaysLeadWithStory,
   });
 
   res.json(result);

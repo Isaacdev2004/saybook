@@ -48,7 +48,8 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
   writeLines(`Audience: ${bookData.audience}`, 10, "normal");
   writeLines(`Genre: ${bookData.genre}`, 10, "normal");
   writeLines(`Main goal: ${bookData.goal}`, 10, "normal");
-  writeLines(`Chapter syntax matrix: ${dhm.chapterSyntaxMatrix}`, 10, "bold");
+  writeLines(`Chapter syntax template: ${dhm.chapterSyntaxMatrix}`, 10, "bold");
+  writeLines("Each chapter lists its own matrix below when syntax varies by chapter.", 9, "italic");
   y += 4;
 
   writeLines("Syntax KEY", 12, "bold");

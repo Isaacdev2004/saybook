@@ -1,6 +1,7 @@
 import {
   Document,
   HeadingLevel,
+  PageBreak,
   Packer,
   Paragraph,
   TextRun,
@@ -19,16 +20,28 @@ function sanitizeFilename(title: string): string {
 }
 
 function pHeading(text: string, level: (typeof HeadingLevel)[keyof typeof HeadingLevel]): Paragraph {
-  return new Paragraph({ heading: level, children: [new TextRun(text)] });
+  return new Paragraph({
+    heading: level,
+    spacing: {
+      before: level === HeadingLevel.TITLE ? 0 : 240,
+      after: 120,
+    },
+    children: [new TextRun(text)],
+  });
 }
 
 function pBody(text: string, bold = false): Paragraph {
   return new Paragraph({
+    spacing: { after: 100 },
     children: [new TextRun({ text: text.replace(/\s+/g, " ").trim(), bold })],
   });
 }
 
-/** Word (.docx) opens cleanly in Google Docs via Upload → Open with Google Docs. */
+function pPageBreak(): Paragraph {
+  return new Paragraph({ children: [new PageBreak()] });
+}
+
+/** Structured .docx for Microsoft Word (same outline order as the PDF). */
 export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, editedTitles: Record<number, string>): Promise<void> {
   const blocks: Paragraph[] = [];
 
@@ -39,7 +52,8 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
   blocks.push(pBody(`Audience: ${bookData.audience}`));
   blocks.push(pBody(`Genre: ${bookData.genre}`));
   blocks.push(pBody(`Main goal: ${bookData.goal}`));
-  blocks.push(pBody(`Chapter syntax matrix: ${dhm.chapterSyntaxMatrix}`));
+  blocks.push(pBody(`Chapter syntax template: ${dhm.chapterSyntaxMatrix}`, true));
+  blocks.push(pBody("Each chapter below lists the matrix used for that chapter (it may differ when “vary by chapter” is enabled)."));
 
   blocks.push(pHeading("Syntax KEY", HeadingLevel.HEADING_2));
   for (const line of SYNTAX_KEY_BLOCK.split("\n")) {
@@ -52,9 +66,15 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
     { label: "CALL TO ACTION", chapters: dhm.arc.callToAction },
   ];
 
+  let firstSection = true;
   for (const { label, chapters } of sections) {
     if (chapters.length === 0) continue;
+    if (!firstSection) {
+      blocks.push(pPageBreak());
+    }
+    firstSection = false;
     blocks.push(pHeading(label, HeadingLevel.HEADING_1));
+
     for (const ch of chapters) {
       const title = editedTitles[ch.num] ?? ch.title;
       blocks.push(pHeading(`Chapter ${ch.num}: ${title}`, HeadingLevel.HEADING_2));
@@ -69,9 +89,11 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
           blocks.push(pBody(`Guidance: ${pt.guidance}`));
         }
       }
+      blocks.push(new Paragraph({ spacing: { after: 280 }, children: [] }));
     }
   }
 
+  blocks.push(pPageBreak());
   blocks.push(pHeading("Story of Thesis", HeadingLevel.HEADING_1));
   blocks.push(pBody(dhm.storyOfThesis));
 

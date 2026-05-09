@@ -42,6 +42,8 @@ export default function Output() {
         genre: bookData.genre,
         plan: bookData.plan,
         chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
+        syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
+        syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
       }),
     });
   }, [bookData, setBookData]);
@@ -68,6 +70,8 @@ export default function Output() {
         genre: bookData.genre,
         plan: bookData.plan,
         chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
+        syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
+        syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
       }),
     });
   }, [bookData, setBookData]);
@@ -140,7 +144,7 @@ export default function Output() {
                 onClick={() => void handleDownloadDocx()}
               >
                 <FileType2 className="mr-2 h-5 w-5" />
-                Google Docs–ready (.docx)
+                MS Word–ready (.docx)
               </Button>
             </motion.div>
           </div>
@@ -194,8 +198,14 @@ export default function Output() {
               <p className="text-foreground font-medium capitalize">{bookData.genre}</p>
             </div>
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Chapter syntax matrix</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Chapter syntax template</p>
               <p className="text-foreground font-medium font-mono text-sm">{dhm.chapterSyntaxMatrix}</p>
+              {bookData.syntaxVaryPerChapter !== false ? (
+                <p className="text-xs text-muted-foreground mt-1.5 leading-snug">
+                  Each chapter card shows its own matrix when “vary by chapter” is on.
+                  {bookData.syntaxAlwaysLeadWithStory ? " Strands always open with Story (S)." : ""}
+                </p>
+              ) : null}
             </div>
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1.5">Plan allowance</p>
@@ -232,7 +242,7 @@ export default function Output() {
             <CardHeader>
               <CardTitle className="font-serif text-2xl">Story of Thesis</CardTitle>
               <CardDescription>
-                Your chapter themes woven into one short book-level paragraph (discourse markers tie the arc together). Upload your .docx to Google Docs to edit further.
+                Your chapter themes woven into one short book-level paragraph. The downloadable .docx opens in Microsoft Word (or compatible apps).
               </CardDescription>
             </CardHeader>
             <CardContent>
