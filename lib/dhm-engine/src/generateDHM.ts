@@ -10,6 +10,7 @@ import {
 import {
   firstClause,
   goalGloss,
+  goalIntentShort,
   referAudience,
   referGoal,
   softenClauseForSot,
@@ -140,89 +141,133 @@ function buildChapterTheme(
   goal: string,
   chapterIdx: number,
   salt: number,
+  chapterTitle: string,
 ): string {
   const aud = referAudience(audience, salt);
   const g = referGoal(goal, salt + 1);
-  const variants = {
-    awareness: [
-      `If ${aud} keeps navigating without a clear method, clarity erodes before change can stick.`,
-      `Until the real tension is named, ${aud} can’t line up around ${g}.`,
-      `The hidden price for ${aud} is stalled momentum until ${g} feels reachable, not theoretical.`,
-    ],
-    resolution: [
-      `Here ${aud} trades abstraction for proof—${g} becomes something they can run weekly.`,
-      `This chapter anchors accountability: ${aud} bridge intention with repeatable habits tied to ${g}.`,
-      `To stabilize progress, ${aud} needs guardrails that honor ${g} without overwhelm.`,
-    ],
-    cta: [
-      `Invite ${aud} to commit: ${g}, made concrete with a single next step.`,
-      `Close with a bridge ${aud} can act on tomorrow—no vague inspiration, only ${g} in motion.`,
-      `Seal trust by tying ${g} to identity-level change ${aud} can sustain after launch.`,
-    ],
-  };
-  const pool = variants[kind];
-  return pool[chapterIdx % pool.length];
+  const intent = goalIntentShort(goal, salt + chapterIdx * 11);
+  const t = chapterTitle.replace(/^["']|["']$/g, "").trim() || "this chapter";
+
+  const awareness = [
+    `“${t}” names the gap between habit and breakthrough: until ${aud} sees that gap honestly, ${intent} stays abstract.`,
+    `This chapter uses “${t}” to surface the hidden cost of delay—what ${aud} sacrifices week by week while ${intent} waits on the sidelines.`,
+    `Under "${t}," you show why polite skepticism is expensive: ${aud} needs a clearer picture of risk before they'll invest in ${intent}.`,
+    `Frame “${t}” as the reader’s wake-up scene—emotion first, then logic—so ${aud} feels why ${intent} is no longer optional.`,
+    `Let “${t}” expose the story readers tell themselves to stay safe; your counter-story points them toward ${intent}.`,
+    `Use “${t}” to collapse false trade-offs (${aud} believes X blocks Y); you reunite those threads around ${intent}.`,
+    `“${t}” is where you prove the status quo has a bill due—${aud} should finish the chapter unable to pretend ${intent} can wait.`,
+    `Anchor “${t}” in one vivid contrast (then vs now, insider vs outsider) so ${aud} recognizes themselves before you argue ${intent}.`,
+    `Through “${t},” establish credibility by empathy: you understand ${aud}’s constraints, then narrow the path to ${intent}.`,
+  ];
+
+  const resolution = [
+    `“${t}” moves proof into motion: ${aud} leaves with a method—not a mood—for ${intent}.`,
+    `Here “${t}” turns principle into sequence: what to do Monday, what to check Friday, all aimed at ${intent}.`,
+    `This chapter (“${t}”) is your reliability chapter—systems, guardrails, and feedback loops so ${intent} doesn’t collapse under busy weeks.`,
+    `Under “${t},” trade hero stories for repeatable plays: ${aud} copies a workflow, not a personality, to advance ${intent}.`,
+    `Use “${t}” to stack evidence next to execution—each claim earns the next step toward ${intent}.`,
+    `“${t}” answers “how, exactly?” with templates and examples so ${aud} can rehearse ${intent} before going live.`,
+    `Let “${t}” shrink the gap between insight and habit: one ritual, one metric, one review cadence tied to ${intent}.`,
+    `Frame “${t}” as debugging: where ${aud}’s effort leaks, and how to patch it without shame—still aiming at ${intent}.`,
+    `Close “${t}” with a crisp outcome statement: after this chapter, ${aud} knows what “good” looks like for ${intent}.`,
+  ];
+
+  const cta = [
+    `“${t}” asks for a decision: ${aud} chooses a commitment that makes ${intent} unavoidable in the next two weeks.`,
+    `This chapter (“${t}”) ends with a signature moment—${aud} states aloud (or writes) the pledge that locks in ${intent}.`,
+    `Under “${t},” remove escape hatches: one primary action, one consequence of skipping it, one reward for keeping ${intent}.`,
+    `Use “${t}” to bridge inspiration and calendar: ${aud} schedules the first concrete block of work toward ${intent}.`,
+    `Let “${t}” translate values into velocity—identity language (“I am the kind of person who…”) tied to ${intent}.`,
+    `“${t}” is where you compress the whole arc: ${aud} sees the finish line and names the next three moves for ${intent}.`,
+    `Finish “${t}” with social proof plus personal accountability—who ${aud} tells, what they report, how ${intent} stays visible.`,
+    `Anchor “${t}” in measurement without overwhelm: one scoreboard ${aud} checks weekly to guard ${intent}.`,
+    `Close “${t}” by looping back to chapter one’s tension—now resolved through action toward ${intent}.`,
+  ];
+
+  const pool = kind === "awareness" ? awareness : kind === "resolution" ? resolution : cta;
+  return pool[(chapterIdx + salt * 3) % pool.length];
 }
 
 function strandFocus(strandIdx: number, salt: number): string {
   const pools: string[][] = [
     [
-      "the opening problem and what’s at stake",
-      "what hurts today if nothing changes",
-      "the tension readers feel before your method appears",
+      "stakes before tactics",
+      "the mistake everyone excuses",
+      "the emotion hiding behind metrics",
+      "where urgency actually lives",
+      "the identity fear underneath 'later'",
+      "two opposing truths readers hold at once",
     ],
     [
-      "the workflow or system you’re installing",
-      "how work should run once your approach is live",
-      "the repeatable cadence that replaces heroics",
+      "sequence of moves (not vibes)",
+      "handoffs between people or tools",
+      "cadence: daily vs weekly rhythms",
+      "where friction piles up in real workflows",
+      "the smallest viable system that works",
+      "failure modes when enthusiasm fades",
     ],
     [
-      "evidence, examples, and how you’ll measure progress",
-      "proof, counterarguments you answer, and a simple scoreboard",
-      "what convinces skeptics and keeps momentum from fading",
+      "what counts as proof here",
+      "objections that kill adoption",
+      "scorekeeping readers respect",
+      "before/after deltas worth citing",
+      "where anecdotes fail and numbers win",
+      "ethics, accuracy, or bias readers fear",
     ],
   ];
   const pool = pools[strandIdx % 3];
-  return pool[salt % pool.length];
+  return pool[(salt + strandIdx * 5) % pool.length];
 }
 
 function buildPointTheme(
   code: SAYCode,
-  chapterTheme: string,
   audience: string,
   goal: string,
   strandIdx: number,
   pointIdx: number,
   salt: number,
+  chapterTitle: string,
 ): string {
-  const ct = firstClause(chapterTheme, 130);
   const aud = referAudience(audience, salt + strandIdx * 3);
-  const g = referGoal(goal, salt + pointIdx * 5 + 2);
+  const intent = goalIntentShort(goal, salt + strandIdx + pointIdx);
   const focus = strandFocus(strandIdx, salt + strandIdx);
-  const evidenceBeat =
-    pointIdx === 0 ? "an opening, trust-building" : pointIdx === 1 ? "a tightening, doubt-reducing" : "a closing, decision-ready";
+  const t = chapterTitle.replace(/^["']|["']$/g, "").trim() || "this chapter";
+  const beat = pointIdx === 0 ? "Open" : pointIdx === 1 ? "Deepen" : "Land";
+  const idx = (strandIdx * 9 + pointIdx * 13 + salt * 7) % 1000;
 
   if (code === "S") {
-    return [
-      `Choose a story centered on ${focus} that dramatizes this chapter’s through-line: ${ct}`,
-      `Stage a scene where ${aud} pursues ${g} but collides with ${focus}; end on the emotional turn, not the lecture.`,
-      `Use a before/after contrast around ${focus}: show what changes once the chapter’s lesson becomes non‑negotiable.`,
-    ][(strandIdx + pointIdx + salt) % 3];
+    const pool = [
+      `${beat} “${t}” through lived detail: one protagonist, one pressure point related to ${focus}, ending on the insight that sets up evidence.`,
+      `Tell a single decisive scene for ${focus}—no montage—so ${aud} feels why ${intent} belongs in their real week.`,
+      `Contrast two paths around ${focus}: the expensive default vs the disciplined alternative your chapter champions.`,
+      `Use dialogue or internal monologue to expose the belief blocking ${intent}; let ${focus} carry the subtext.`,
+      `Borrow structure from memoir or journalism: scene → reflection tied to ${focus}, always pointing toward ${intent}.`,
+      `Pick an antagonist (market noise, legacy habit, bad incentive) and dramatize how it attacks ${focus}.`,
+    ];
+    return pool[idx % pool.length];
   }
 
   if (code === "Y") {
-    return [
-      `Provide ${evidenceBeat} evidence for ${g} (seen through ${focus}): one quantitative anchor, one field example, and one objection you dismantle.`,
-      `Pick research suited to ${focus}: benchmark, controlled comparison, expert synthesis, or longitudinal note—then state plainly what it implies for ${g}.`,
-      `Lay out a credibility ladder for ${focus}: claim → evidence → limit of the evidence → why the chapter theme still holds.`,
-    ][(strandIdx + pointIdx + salt) % 3];
+    const pool = [
+      `Curate proof for ${focus}: primary source + secondary synthesis + one conflicting study you reconcile—each tied to ${intent}.`,
+      `Pull industry metrics, a controlled experiment, or a regulator/advisory stance—then translate jargon into what ${aud} should conclude about ${intent}.`,
+      `Interview-style testimony or transcript excerpt that illustrates ${focus}; pair it with a hard number so skeptics engage.`,
+      `Compare two credible frameworks side by side on ${focus}; show trade-offs, then pick the fit for ${intent}.`,
+      `Meta-analysis or survey snapshot if available; if not, triangulate with three independent signals about ${focus}.`,
+      `Address an ethics or misuse angle on ${focus} before critics do—then restate why ${intent} stays responsible.`,
+    ];
+    return pool[idx % pool.length];
   }
 
-  return [
-    `Give ${aud} a three-move playbook for ${focus} that advances ${g} inside the chapter’s argument.`,
-    `Offer a lightweight artifact for ${focus} (checklist, prompt bank, scorecard) and show one filled-in example tied to ${g}.`,
-    `Define a habit plus a metric for ${focus}: frequency, leading indicator, and what “done well” looks like relative to ${g}.`,
-  ][(strandIdx + pointIdx + salt) % 3];
+  const pool = [
+    `Give ${aud} an executable mini-playbook for ${focus}: three numbered moves that advance ${intent} inside “${t}”.`,
+    `Ship one tangible artifact (worksheet, prompt stack, rubric) scoped to ${focus}; fill one row as a worked example toward ${intent}.`,
+    `Define a weekly ritual plus one KPI for ${focus}; specify failure signals and a recovery step aligned with ${intent}.`,
+    `Translate ${intent} into a decision tree for ${focus}: if X then Y; include one “stop rule” to avoid busywork.`,
+    `Offer a constraint-based exercise for ${focus} (time-box, budget cap, quality bar) so ${aud} ships instead of polishing.`,
+    `Close Advice with a rehearsal script: what ${aud} says, schedules, or commits—mapped to ${focus} and ${intent}.`,
+  ];
+  return pool[idx % pool.length];
 }
 
 function buildPointGuidance(
@@ -233,43 +278,66 @@ function buildPointGuidance(
   strandIdx: number,
   pointIdx: number,
   salt: number,
+  chapterTitle: string,
 ): string {
   const aud = referAudience(audience, salt + 7);
-  const g = referGoal(goal, salt + 9);
-  const k = strandIdx + pointIdx + (kind === "awareness" ? 0 : kind === "resolution" ? 3 : 6) + salt;
+  const intent = goalIntentShort(goal, salt + strandIdx);
   const focus = strandFocus(strandIdx, salt + 1);
+  const t = chapterTitle.replace(/^["']|["']$/g, "").trim() || "this chapter";
+  const ring =
+    kind === "awareness" ? 0 : kind === "resolution" ? 9 : 18;
+  const k = strandIdx + pointIdx + ring + salt;
+  const idx = (k * 11 + salt) % 48;
 
   if (code === "S") {
     const lines = [
-      `Draft a concrete scene for ${focus}: who, where, the decision, and what went wrong or right for ${aud}.`,
-      `Anchor one specific moment that shows why ${g} matters; skip abstract backstory and end with a question the evidence answers.`,
-      `Close the story with one plain-language sentence that restates the chapter theme without repeating it word for word.`,
+      `Write 400–700 words: one setting, one conflict tied to ${focus}, one turn that previews ${intent}.`,
+      `Start in media res; reveal stakes for ${aud} within two paragraphs; close with a question Evidence must answer.`,
+      `Ban slogans—show behavior: what ${aud} clicks, says, or avoids when ${focus} gets tested.`,
+      `Use sensory specifics (time of day, tool, metric on screen) so ${focus} feels filmed, not summarized.`,
+      `After the scene, add two sentences of interpretation linking to ${intent}—still in plain English.`,
+      `If you use a composite character, say so once; keep empathy high and jargon low.`,
     ];
-    return lines[k % lines.length];
+    return lines[idx % lines.length];
   }
   if (code === "Y") {
     const lines = [
-      `Mix two or three proof types for ${focus} (number, authority, case). Tie each finding back to ${g} and the chapter theme.`,
-      `Include at least one verifiable claim for ${focus}, plus a short vignette showing ${aud} applying it.`,
-      `Name one realistic doubt about ${focus} (cost, ethics, accuracy, time) and answer it on the page before Advice lands.`,
+      `Label each source type inline (study / practitioner / dataset). End with: “So for ${aud}, this implies…” about ${intent}.`,
+      `Include one figure readers can sanity-check (growth rate, error margin, sample size). Translate it into a sentence ${aud} can quote.`,
+      `Present a mini “rival hypotheses” paragraph on ${focus}: why skeptics doubt, what evidence shifts the balance.`,
+      `Pair qualitative proof with numeric guardrails—numbers anchor emotion about ${focus}.`,
+      `If evidence is emerging, say what would falsify your claim—credibility rises when ${aud} sees honesty.`,
+      `Close Yielded Evidence with a bridge sentence that tees up Advice without repeating “${t}” verbatim.`,
     ];
-    return lines[k % lines.length];
+    return lines[idx % lines.length];
   }
-  const lines = [
-    `Lay out three steps for ${focus} (setup → execution → review) that ${aud} can finish in under an hour.`,
-    `Add one copy-ready line ${aud} can reuse for ${g} (prompt skeleton, checklist item, KPI definition) scoped to ${focus}.`,
-    `End this Advice beat with one sentence that hands off cleanly to the next letter in the same strand—no jargon, no “handle the stakes” shorthand.`,
+  const linesGeneral = [
+    `Turn ${intent} into a checklist ${aud} can run this week; cap it at seven bullets scoped to ${focus}.`,
+    `Specify definition of done for ${focus}: observable signal, timestamp, and owner.`,
+    `Give one worked micro-example (names anonymized) showing ${focus} before and after your Advice.`,
+    `Replace motivational clichés with mechanics: triggers, environments, accountability hooks.`,
+    `End with one imperative sentence that connects to the next SAY letter in this strand.`,
+    `Advance ${intent} without burying ${aud} in jargon; tie every bullet to ${focus}.`,
   ];
-  return lines[k % lines.length];
+  const linesCta = [
+    `End Advice with an irreversible next step toward ${intent}: calendar block, public pledge, or metric baseline tied to ${focus}.`,
+    `Ask ${aud} to name an accountability partner or channel for reporting progress on ${intent}.`,
+    `Close with a commitment ritual appropriate to the book's close: signed pledge, voice memo, or dated note.`,
+    `Pair the next step with one consequence of delay and one reward for follow-through about ${focus}.`,
+    `Ship a seven-day starter plan for ${intent}; each day one micro-action tied to ${focus}.`,
+    `Schedule the first review date in-text so ${intent} does not evaporate after the chapter ends.`,
+  ];
+  const pool = kind === "cta" ? linesCta : linesGeneral;
+  return pool[idx % pool.length];
 }
 
 function buildStrandsForChapter(
   matrix: string,
-  chapterTheme: string,
   kind: "awareness" | "resolution" | "cta",
   audience: string,
   goal: string,
   globalSalt: number,
+  chapterTitle: string,
 ): Strand[] {
   const patterns = parseStrandPatterns(matrix);
   return patterns.map((pattern, strandIdx) => {
@@ -277,8 +345,25 @@ function buildStrandsForChapter(
     const points: SAYPoint[] = chars.map((code, pointIdx) => ({
       code,
       label: labelForCode(code),
-      pointTheme: buildPointTheme(code, chapterTheme, audience, goal, strandIdx, pointIdx, globalSalt + strandIdx * 10 + pointIdx),
-      guidance: buildPointGuidance(code, kind, audience, goal, strandIdx, pointIdx, globalSalt + strandIdx * 10 + pointIdx),
+      pointTheme: buildPointTheme(
+        code,
+        audience,
+        goal,
+        strandIdx,
+        pointIdx,
+        globalSalt + strandIdx * 10 + pointIdx,
+        chapterTitle,
+      ),
+      guidance: buildPointGuidance(
+        code,
+        kind,
+        audience,
+        goal,
+        strandIdx,
+        pointIdx,
+        globalSalt + strandIdx * 10 + pointIdx,
+        chapterTitle,
+      ),
     }));
     return { index: strandIdx + 1, pattern, points };
   });
@@ -311,7 +396,7 @@ export function buildStoryOfThesis(
     body += ` ${m} ${next}`;
   }
 
-  return `${body} Together, these movements form the Story of Thesis for ${title}—one arc for ${referAudience(audience, 99)}, grounded in ${gloss}.`;
+  return `${body} Together, these movements form the Story of Thesis for ${title} - one arc for ${referAudience(audience, 99)}, grounded in ${gloss}.`;
 }
 
 function pushChapter(
@@ -327,8 +412,8 @@ function pushChapter(
   syntaxOpts: VaryMatrixOptions,
 ): void {
   const matrix = varyChapterMatrix(matrixTemplate, globalChapterIndex, syntaxOpts);
-  const chapterTheme = buildChapterTheme(kind, audience, goal, chapterIdx, globalChapterIndex * 17);
-  const strands = buildStrandsForChapter(matrix, chapterTheme, kind, audience, goal, globalChapterIndex * 31);
+  const chapterTheme = buildChapterTheme(kind, audience, goal, chapterIdx, globalChapterIndex * 17, title);
+  const strands = buildStrandsForChapter(matrix, kind, audience, goal, globalChapterIndex * 31, title);
   bucket.push({
     num,
     title,

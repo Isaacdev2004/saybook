@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import type { BookData } from "@/lib/store";
 import type { DHMChapter, DHMResult } from "@workspace/dhm-engine";
-import { SYNTAX_KEY_BLOCK, pointThemeHeading } from "@workspace/dhm-engine";
+import { SYNTAX_KEY_BLOCK, pointThemeHeading, toPdfSafeText } from "@workspace/dhm-engine";
 
 const MM_MARGIN = 14;
 const PAGE_H = 297;
@@ -32,7 +32,11 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
   const writeLines = (lines: string | string[], fontSize: number, style: "normal" | "bold" | "italic") => {
     doc.setFontSize(fontSize);
     doc.setFont("helvetica", style === "italic" ? "italic" : style === "bold" ? "bold" : "normal");
-    const arr = typeof lines === "string" ? doc.splitTextToSize(lines.replace(/\s+/g, " ").trim(), CONTENT_W) : lines;
+    const text =
+      typeof lines === "string"
+        ? toPdfSafeText(lines.replace(/\s+/g, " ").trim())
+        : lines.map((l) => toPdfSafeText(String(l).replace(/\s+/g, " ").trim())).join("\n");
+    const arr = doc.splitTextToSize(text, CONTENT_W);
     const h = Math.max(arr.length, 1) * LINE_MM;
     ensureBottom(h);
     doc.text(arr, MM_MARGIN, y);
