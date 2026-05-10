@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { BookMarked, FileText, Layers } from "lucide-react";
+import { BookMarked, FileText, Layers, Quote } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { pointThemeHeading, type DHMArc, type DHMChapter } from "@workspace/dhm-engine";
 
@@ -100,7 +100,11 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                       whileHover={{ x: 4, boxShadow: "0 8px 30px -6px rgba(0,0,0,0.12)" }}
                       transition={{ type: "spring", stiffness: 300, damping: 22 }}
                     >
-                      <Card className="border-border/70 overflow-hidden group cursor-default" data-testid={`card-chapter-${chapter.num}`}>
+                      <Card
+                        className="border-border/70 overflow-hidden group cursor-default"
+                        data-testid={`card-chapter-${chapter.num}`}
+                        aria-label={`Chapter ${chapter.num} Double Helix Map`}
+                      >
                         <CardHeader className="pb-3 bg-muted/20 border-b border-border/50">
                           <div className="flex items-start justify-between gap-4 flex-wrap">
                             <div className="flex-1 min-w-[12rem]">
@@ -135,10 +139,18 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                         <CardContent className="pt-5 space-y-6">
                           <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.12 }}>
                             <div className="flex items-center gap-2 mb-2.5 text-sm font-semibold text-foreground">
-                              <BookMarked className="h-4 w-4 text-primary" />
-                              Chapter Theme
+                              <BookMarked className="h-4 w-4 text-primary" aria-hidden />
+                              Story of Thesis (SOT): Chapter {chapter.num} summary
                             </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed pl-5 border-l-2 border-primary/20">{chapter.chapterTheme}</p>
+                            <p className="text-[11px] text-muted-foreground mb-3 pl-0.5 leading-snug">
+                              Strand thesis lines joined verbatim — chapter titles above are editable placeholders.
+                            </p>
+                            <div className="rounded-xl border border-primary/15 bg-gradient-to-br from-primary/[0.07] to-transparent px-4 py-4 shadow-sm">
+                              <Quote className="h-4 w-4 text-primary/70 mb-2" aria-hidden />
+                              <p className="font-serif text-[15px] md:text-base text-foreground leading-relaxed tracking-tight">
+                                {chapter.chapterStoryOfThesis}
+                              </p>
+                            </div>
                           </motion.div>
 
                           <div className="space-y-5">
@@ -151,10 +163,18 @@ export function DHMOutput({ arc, editedTitles, onTitleEdit }: DHMOutputProps) {
                                 key={`${chapter.num}-${strand.index}`}
                                 className="rounded-xl border border-border/80 bg-muted/10 p-4 space-y-4"
                               >
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-xs font-bold uppercase tracking-wider text-foreground">Strand {strand.index}</span>
-                                  <span className="font-mono text-sm font-bold px-2 py-0.5 rounded bg-background border border-border">{strand.pattern}</span>
-                                  <span className="text-xs text-muted-foreground">· three SAY letters = one subheading block</span>
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-bold uppercase tracking-wider text-foreground">Strand {strand.index}</span>
+                                    <span className="font-mono text-sm font-bold px-2 py-0.5 rounded bg-background border border-border">{strand.pattern}</span>
+                                    <span className="text-xs text-muted-foreground">· three SAY letters = one subheading block</span>
+                                  </div>
+                                  <p className="text-sm text-foreground leading-relaxed border-l-[3px] border-primary/35 pl-3.5 py-0.5 bg-background/80 rounded-r-md">
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
+                                      Strand thesis (SOT)
+                                    </span>
+                                    {strand.strandThesis}
+                                  </p>
                                 </div>
                                 <div className="grid gap-4 sm:grid-cols-3">
                                   {strand.points.map((pt, idx) => (

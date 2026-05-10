@@ -475,10 +475,10 @@ export default function Dashboard() {
                             <Checkbox checked={field.value} onCheckedChange={(v) => field.onChange(v === true)} />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel className="font-medium cursor-pointer">Always start each strand with Story (S)</FormLabel>
+                            <FormLabel className="font-medium cursor-pointer">Story lock — chapter opens with Story</FormLabel>
                             <p className="text-sm text-muted-foreground">
-                              When varying, each strand stays <span className="font-mono text-xs">S</span>-first and alternates{" "}
-                              <span className="font-mono text-xs">SYA</span> / <span className="font-mono text-xs">SAY</span>.
+                              Only the <strong>first strand</strong> of each chapter is forced{" "}
+                              <span className="font-mono text-xs">S</span>-first (SYA/SAY style). Other strands follow normal SAY rotation—subheadings are not all Story-led.
                             </p>
                           </div>
                         </FormItem>

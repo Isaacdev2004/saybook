@@ -12,6 +12,9 @@ export const SYNTAX_KEY_BLOCK = [
   "Syntax KEY: Storytelling, Advice, Yielded Evidence",
   "Letter codes — S = Storytelling · Y = Yielded Evidence · A = Advice",
   "Each letter is one SAY point. Three letters = one strand (subheading). Slashes separate strands in your chapter matrix (e.g. SYA/YAA/AYA = three strands × three SAY points).",
+  "Each strand has one crisp thesis line (SOT). The chapter Story of Thesis joins those strand lines into one paragraph with discourse markers.",
+  "Story lock (when enabled): the chapter opens with Story — only the first strand is forced S‑first; other strands follow normal SAY rotation.",
+  "Connectors (Therefore, From there, …) glue strand lines into chapter summaries, and chapter summaries into the book‑level Story of Thesis — only your strand thesis wording is repeated verbatim inside those joins.",
 ].join("\n");
 
 export function labelForCode(char: string): string {
@@ -72,22 +75,35 @@ export function alternateSYA_SAY(segment: string): string {
 export interface VaryMatrixOptions {
   /** When true, each chapter gets rotated strand orders from the template. */
   varyPerChapter: boolean;
-  /** When true with varyPerChapter, each strand keeps S first; alternates SYA/SAY. */
+  /**
+   * Story lock: the **chapter** opens with Story — only the **first** strand is forced
+   * to start with S (SYA/SAY style). Other strands follow normal rotation.
+   */
   alwaysLeadWithStory: boolean;
+}
+
+/** Ensure first strand segment begins with S (Story first for the chapter). */
+function chapterFirstStrandStoryLocked(segment: string, chapterIndex: number): string {
+  const led = rotateStrandToLeadWithS(segment);
+  return chapterIndex % 2 === 0 ? led : alternateSYA_SAY(led);
 }
 
 /** Build per-chapter matrix from user template. */
 export function varyChapterMatrix(baseMatrix: string, chapterIndex: number, opts: VaryMatrixOptions): string {
   const normalized = normalizeChapterSyntaxMatrix(baseMatrix);
   const patterns = parseStrandPatterns(normalized);
-  if (!opts.varyPerChapter) return patterns.join("/");
+  if (patterns.length === 0) return normalized;
+
+  if (!opts.varyPerChapter) {
+    if (!opts.alwaysLeadWithStory) return patterns.join("/");
+    const rest = patterns.slice(1).map((seg) => seg);
+    return [chapterFirstStrandStoryLocked(patterns[0], chapterIndex), ...rest].join("/");
+  }
 
   return patterns
     .map((seg, strandIdx) => {
-      const salt = chapterIndex + strandIdx * 2;
-      if (opts.alwaysLeadWithStory) {
-        const led = rotateStrandToLeadWithS(seg);
-        return salt % 2 === 0 ? led : alternateSYA_SAY(led);
+      if (opts.alwaysLeadWithStory && strandIdx === 0) {
+        return chapterFirstStrandStoryLocked(seg, chapterIndex);
       }
       return rotateStrandSegment(seg, chapterIndex + strandIdx);
     })

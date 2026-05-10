@@ -80,12 +80,14 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
       ensureBottom(LINE_MM * 6);
       writeLines(`Chapter ${ch.num}: ${title}`, 11, "bold");
       writeLines(`Chapter syntax matrix: ${ch.chapterSyntaxMatrix}`, 10, "bold");
-      writeLines(`Chapter theme: ${ch.chapterTheme}`, 10, "normal");
+      writeLines("Story of Thesis (SOT) — Chapter summary", 11, "bold");
+      writeLines(ch.chapterStoryOfThesis, 10, "normal");
       y += 2;
 
       for (const strand of ch.strands) {
         ensureBottom(LINE_MM * 5);
         writeLines(`Strand ${strand.index} · ${strand.pattern}`, 10, "bold");
+        writeLines(`Strand thesis (SOT): ${strand.strandThesis}`, 9, "italic");
         for (const pt of strand.points) {
           writeLines(`${pt.code} (${pt.label})`, 9, "bold");
           writeLines(`${pointThemeHeading(pt.code)}: ${pt.pointTheme}`, 9, "normal");
@@ -98,8 +100,14 @@ export function downloadDHMPdf(bookData: BookData, dhm: DHMResult, editedTitles:
     }
   }
 
-  ensureBottom(LINE_MM * 8);
-  writeLines("Story of Thesis", 13, "bold");
+  ensureBottom(LINE_MM * 10);
+  writeLines("Story of Thesis — Book level", 13, "bold");
+  writeLines(
+    "Joined chapter summaries (strand wording preserved inside each chapter summary).",
+    9,
+    "italic",
+  );
+  y += 2;
   writeLines(dhm.storyOfThesis, 10, "normal");
 
   doc.save(`${sanitizeFilename(bookData.title)}-dhm.pdf`);

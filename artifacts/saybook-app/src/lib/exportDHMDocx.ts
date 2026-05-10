@@ -79,10 +79,12 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
       const title = editedTitles[ch.num] ?? ch.title;
       blocks.push(pHeading(`Chapter ${ch.num}: ${title}`, HeadingLevel.HEADING_2));
       blocks.push(pBody(`Chapter syntax matrix: ${ch.chapterSyntaxMatrix}`, true));
-      blocks.push(pBody(`Chapter theme: ${ch.chapterTheme}`));
+      blocks.push(pBody(`Story of Thesis (SOT) — Chapter ${ch.num} summary`, true));
+      blocks.push(pBody(ch.chapterStoryOfThesis));
 
       for (const strand of ch.strands) {
         blocks.push(pHeading(`Strand ${strand.index} · ${strand.pattern}`, HeadingLevel.HEADING_3));
+        blocks.push(pBody(`Strand thesis (SOT): ${strand.strandThesis}`, true));
         for (const pt of strand.points) {
           blocks.push(pBody(`${pt.code} (${pt.label})`, true));
           blocks.push(pBody(`${pointThemeHeading(pt.code)}: ${pt.pointTheme}`));
@@ -94,7 +96,12 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
   }
 
   blocks.push(pPageBreak());
-  blocks.push(pHeading("Story of Thesis", HeadingLevel.HEADING_1));
+  blocks.push(pHeading("Story of Thesis — Book level", HeadingLevel.HEADING_1));
+  blocks.push(
+    pBody(
+      "Joined chapter summaries (strand wording preserved inside each chapter summary).",
+    ),
+  );
   blocks.push(pBody(dhm.storyOfThesis));
 
   const doc = new Document({

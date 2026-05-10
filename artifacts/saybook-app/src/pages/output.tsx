@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DHMOutput } from "@/components/DHMOutput";
-import { generateDHM, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
+import { DHM_ENGINE_VERSION, generateDHM, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
 import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp, FileType2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { downloadDHMPdf } from "@/lib/exportDHMPdf";
@@ -14,10 +14,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 function dhmMatchesCurrentEngine(dhm: DHMResult | undefined): boolean {
   if (!dhm || typeof dhm.storyOfThesis !== "string") return false;
+  if (dhm.dhmEngineVersion !== DHM_ENGINE_VERSION) return false;
   const all = [...dhm.arc.awareness, ...dhm.arc.resolution, ...dhm.arc.callToAction];
   if (all.length === 0) return true;
   const ch = all[0];
-  return Array.isArray(ch.strands) && ch.strands.length > 0;
+  return (
+    typeof ch.chapterStoryOfThesis === "string" &&
+    Array.isArray(ch.strands) &&
+    ch.strands.length > 0 &&
+    typeof ch.strands[0]?.strandThesis === "string"
+  );
 }
 
 export default function Output() {
@@ -203,7 +209,9 @@ export default function Output() {
               {bookData.syntaxVaryPerChapter !== false ? (
                 <p className="text-xs text-muted-foreground mt-1.5 leading-snug">
                   Each chapter card shows its own matrix when “vary by chapter” is on.
-                  {bookData.syntaxAlwaysLeadWithStory ? " Strands always open with Story (S)." : ""}
+                  {bookData.syntaxAlwaysLeadWithStory
+                    ? " Story lock: each chapter opens with Story—only the first strand is S‑first."
+                    : ""}
                 </p>
               ) : null}
             </div>
@@ -224,8 +232,13 @@ export default function Output() {
           transition={{ duration: 0.5, delay: 0.15 }}
           className="flex flex-wrap items-center justify-between gap-4 mb-10"
         >
-          <h2 className="font-serif text-2xl md:text-3xl font-bold">Double Helix Map Structure</h2>
-          <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 text-xs font-semibold uppercase tracking-wider px-3 py-1">
+          <div>
+            <h2 className="font-serif text-2xl md:text-3xl font-bold">Double Helix Map Structure</h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+              Strand thesis lines are woven verbatim into each chapter summary; those summaries are woven into the book‑level Story of Thesis. SAY themes stay in plain language and do not repeat your title or main goal.
+            </p>
+          </div>
+          <Badge variant="outline" className="text-primary border-primary/20 bg-primary/5 text-xs font-semibold uppercase tracking-wider px-3 py-1 shrink-0">
             DHM Generated
           </Badge>
         </motion.div>
@@ -242,11 +255,11 @@ export default function Output() {
             <CardHeader>
               <CardTitle className="font-serif text-2xl">Story of Thesis</CardTitle>
               <CardDescription>
-                Your chapter themes woven into one short book-level paragraph. The downloadable .docx opens in Microsoft Word (or compatible apps).
+                One paragraph built by joining every chapter’s Story of Thesis summary in order (discourse markers only between chapters). Strand thesis wording stays intact inside each chapter summary. Export to PDF or MS Word (.docx) for workshops or editors.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-foreground leading-relaxed font-serif text-lg">{dhm.storyOfThesis}</p>
+              <p className="text-foreground leading-relaxed font-serif text-lg md:text-xl tracking-tight">{dhm.storyOfThesis}</p>
             </CardContent>
           </Card>
         </motion.div>
