@@ -5,6 +5,8 @@
   "scripts": {
     "preinstall": "node ./preinstall.cjs",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "dev:api": "pnpm --filter @workspace/api-server run dev",
+    "dev:app": "pnpm --filter @workspace/saybook-app run dev",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck"
   },

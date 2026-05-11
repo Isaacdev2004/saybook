@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import { z } from "zod";
+import { friendlyGeminiMessage, geminiErrorStatus } from "../lib/geminiErrors";
 import { generateDhmWithGemini } from "../services/geminiDhm";
 
 const GenerateDHMBodySchema = z.object({
@@ -40,9 +41,9 @@ router.post("/dhm", async (req, res) => {
     });
     res.json(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "DHM generation failed.";
-    const status = message.includes("GEMINI_API_KEY") ? 503 : 502;
-    res.status(status).json({ error: "dhm_generation_failed", message });
+    const raw = err instanceof Error ? err.message : "DHM generation failed.";
+    const message = friendlyGeminiMessage(raw);
+    res.status(geminiErrorStatus(raw)).json({ error: "dhm_generation_failed", message });
   }
 });
 

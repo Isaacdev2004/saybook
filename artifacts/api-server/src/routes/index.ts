@@ -11,4 +11,8 @@ router.use(dhmRouter);
 router.use(communityRouter);
 router.use(adminCommunityRouter);
 
+router.use((_req, res) => {
+  res.status(404).json({ error: "not_found", message: "Unknown API route." });
+});
+
 export default router;

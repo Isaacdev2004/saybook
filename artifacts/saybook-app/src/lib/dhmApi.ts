@@ -1,5 +1,5 @@
 import type { DHMResult } from "@workspace/dhm-engine";
-import { apiUrl } from "./apiBase";
+import { apiUrl, getApiBaseUrl } from "./apiBase";
 
 export interface RequestDhmPayload {
   title: string;
@@ -12,13 +12,18 @@ export interface RequestDhmPayload {
   syntaxAlwaysLeadWithStory?: boolean;
 }
 
-async function readJsonBody(res: Response): Promise<unknown> {
+async function readJsonBody(res: Response, url: string): Promise<unknown> {
   const text = await res.text();
   if (!text.trim()) {
-    throw new Error(
-      `The server returned an empty response (HTTP ${res.status}). ` +
-        "Start the API server locally, or set VITE_API_BASE_URL to your API host (not the static Saybook site URL).",
-    );
+    const base = getApiBaseUrl();
+    const hint = base
+      ? `POST ${url} returned an empty body. Confirm that host is the Node API (not a static-only site) and that /api/dhm is deployed.`
+      : res.status === 200
+        ? "This usually means the browser hit a static host that does not run POST /api/dhm. Start the API server locally (PORT in .env) and use the Vite dev app, or set VITE_API_BASE_URL to your API origin (not the static Saybook site URL)."
+        : res.status === 500
+          ? "The dev proxy or API stopped before returning JSON. Restart the API (pnpm dev:api), keep the app on http://localhost:5173, and leave VITE_API_BASE_URL blank for local dev."
+          : "Start the API server locally, or set VITE_API_BASE_URL to your API host (not the static Saybook site URL).";
+    throw new Error(`The server returned an empty response (HTTP ${res.status}). ${hint}`);
   }
   try {
     return JSON.parse(text) as unknown;
@@ -46,7 +51,7 @@ export async function requestDhmGeneration(payload: RequestDhmPayload): Promise<
     );
   }
 
-  const data = await readJsonBody(res);
+  const data = await readJsonBody(res, url);
 
   if (!res.ok) {
     const body = data as { message?: string; error?: string };
