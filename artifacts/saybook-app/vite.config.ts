@@ -13,8 +13,11 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 const basePath = process.env.BASE_PATH ?? "/";
+const workspaceRoot = path.resolve(import.meta.dirname, "../..");
+const devApiTarget = process.env.VITE_DEV_API_URL ?? `http://127.0.0.1:${process.env.PORT ?? "5000"}`;
 
 export default defineConfig({
+  envDir: workspaceRoot,
   base: basePath,
   plugins: [
     react(),
@@ -56,7 +59,7 @@ export default defineConfig({
     },
     proxy: {
       "/api": {
-        target: process.env.VITE_DEV_API_URL ?? "http://127.0.0.1:5000",
+        target: devApiTarget,
         changeOrigin: true,
       },
     },
@@ -65,5 +68,11 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": {
+        target: devApiTarget,
+        changeOrigin: true,
+      },
+    },
   },
 });
