@@ -29,10 +29,13 @@ async function readJsonBody(res: Response, url: string): Promise<unknown> {
     return JSON.parse(text) as unknown;
   } catch {
     const preview = text.replace(/\s+/g, " ").trim().slice(0, 120);
-    throw new Error(
-      `The server did not return JSON (HTTP ${res.status}). ` +
-        `Check VITE_API_BASE_URL points at the API service. Response started with: ${preview}`,
-    );
+    const looksLikeSpa =
+      /<!doctype html|<html\b/i.test(text) &&
+      (url.includes("/api/") || res.headers.get("content-type")?.includes("text/html"));
+    const hint = looksLikeSpa
+      ? "This Render URL is still serving the static site (SPA HTML on /api). Deploy the Node web service from render.yaml with SERVE_STATIC=true, or set VITE_API_BASE_URL to that API host and rebuild."
+      : `Check VITE_API_BASE_URL points at the API service. Response started with: ${preview}`;
+    throw new Error(`The server did not return JSON (HTTP ${res.status}). ${hint}`);
   }
 }
 

@@ -3,6 +3,7 @@ services:
   - type: web
     name: saybook
     runtime: node
+    healthCheckPath: /api/healthz
     buildCommand: pnpm install && pnpm --filter @workspace/saybook-app run build && pnpm --filter @workspace/api-server run build
     startCommand: SERVE_STATIC=true node artifacts/api-server/dist/index.mjs
     envVars:
