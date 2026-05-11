@@ -14,7 +14,8 @@ import { useAppContext } from "@/lib/store";
 import { ArrowLeft, Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 import { useEffect, useState } from "react";
-import { generateDHM, getPlanLimits, normalizeChapterSyntaxMatrix } from "@workspace/dhm-engine";
+import { getPlanLimits, normalizeChapterSyntaxMatrix } from "@workspace/dhm-engine";
+import { requestDhmGeneration } from "@/lib/dhmApi";
 import { PLAN_STORAGE_KEY } from "@/lib/planStorage";
 
 const SYNTAX_PRESETS = ["SYA", "SYA/YAA/AYA", "SYA/SYA/SYA", "custom"] as const;
@@ -116,48 +117,56 @@ export default function Dashboard() {
 
   const syntaxPreset = form.watch("chapterSyntaxPreset");
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     setStepIndex(0);
+    setDone(false);
 
     const interval = setInterval(() => {
-      setStepIndex((prev) => {
-        if (prev >= generatingSteps.length - 1) {
-          clearInterval(interval);
-          setDone(true);
-          setTimeout(() => {
-            localStorage.setItem(PLAN_STORAGE_KEY, plan);
-            const chapterSyntaxMatrix = resolvedChapterSyntaxMatrix(values);
-            const syntaxVaryPerChapter = values.syntaxVariation === "vary";
-            const syntaxAlwaysLeadWithStory = values.syntaxAlwaysLeadWithStory;
-            const dhm = generateDHM({
-              title: values.title,
-              audience: values.audience,
-              goal: values.goal,
-              genre: values.genre,
-              plan,
-              chapterSyntaxMatrix,
-              syntaxVaryPerChapter,
-              syntaxAlwaysLeadWithStory,
-            });
-            setBookData({
-              title: values.title,
-              audience: values.audience,
-              goal: values.goal,
-              genre: values.genre,
-              plan,
-              chapterSyntaxMatrix,
-              syntaxVaryPerChapter,
-              syntaxAlwaysLeadWithStory,
-              dhm,
-            });
-            setLocation("/output");
-          }, 700);
-          return prev;
-        }
-        return prev + 1;
-      });
+      setStepIndex((prev) => Math.min(prev + 1, generatingSteps.length - 1));
     }, 420);
+
+    try {
+      const chapterSyntaxMatrix = resolvedChapterSyntaxMatrix(values);
+      const syntaxVaryPerChapter = values.syntaxVariation === "vary";
+      const syntaxAlwaysLeadWithStory = values.syntaxAlwaysLeadWithStory;
+      const dhm = await requestDhmGeneration({
+        title: values.title,
+        audience: values.audience,
+        goal: values.goal,
+        genre: values.genre,
+        plan,
+        chapterSyntaxMatrix,
+        syntaxVaryPerChapter,
+        syntaxAlwaysLeadWithStory,
+      });
+
+      clearInterval(interval);
+      setDone(true);
+      localStorage.setItem(PLAN_STORAGE_KEY, plan);
+      setBookData({
+        title: values.title,
+        audience: values.audience,
+        goal: values.goal,
+        genre: values.genre,
+        plan,
+        chapterSyntaxMatrix,
+        syntaxVaryPerChapter,
+        syntaxAlwaysLeadWithStory,
+        dhm,
+      });
+      setTimeout(() => setLocation("/output"), 700);
+    } catch (err) {
+      clearInterval(interval);
+      setIsSubmitting(false);
+      setDone(false);
+      setStepIndex(0);
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not generate your outline. Check the API server and GEMINI_API_KEY.";
+      form.setError("root", { message });
+    }
   };
 
   return (
@@ -506,6 +515,12 @@ export default function Dashboard() {
                       )}
                     />
                   </motion.div>
+
+                  {form.formState.errors.root?.message ? (
+                    <p className="text-sm text-destructive" role="alert">
+                      {form.formState.errors.root.message}
+                    </p>
+                  ) : null}
 
                   <motion.div
                     custom={9}

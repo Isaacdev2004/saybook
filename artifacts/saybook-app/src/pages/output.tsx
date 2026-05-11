@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DHMOutput } from "@/components/DHMOutput";
-import { DHM_ENGINE_VERSION, generateDHM, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
+import { DHM_ENGINE_VERSION, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
+import { requestDhmGeneration } from "@/lib/dhmApi";
 import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp, FileType2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { downloadDHMPdf } from "@/lib/exportDHMPdf";
@@ -31,27 +32,42 @@ export default function Output() {
   const { bookData, setBookData } = useAppContext();
   const [editedTitles, setEditedTitles] = useState<Record<number, string>>({});
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!bookData) setLocation("/dashboard");
   }, [bookData, setLocation]);
 
   useEffect(() => {
-    if (!bookData) return;
-    if (dhmMatchesCurrentEngine(bookData.dhm)) return;
-    setBookData({
-      ...bookData,
-      dhm: generateDHM({
-        title: bookData.title,
-        audience: bookData.audience,
-        goal: bookData.goal,
-        genre: bookData.genre,
-        plan: bookData.plan,
-        chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
-        syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
-        syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
-      }),
-    });
+    if (!bookData || dhmMatchesCurrentEngine(bookData.dhm)) return;
+    let cancelled = false;
+    setRefreshing(true);
+    setRefreshError(null);
+    void requestDhmGeneration({
+      title: bookData.title,
+      audience: bookData.audience,
+      goal: bookData.goal,
+      genre: bookData.genre,
+      plan: bookData.plan,
+      chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
+      syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
+      syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
+    })
+      .then((dhm) => {
+        if (cancelled) return;
+        setBookData({ ...bookData, dhm });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setRefreshError(err instanceof Error ? err.message : "Could not refresh this outline.");
+      })
+      .finally(() => {
+        if (!cancelled) setRefreshing(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [bookData, setBookData]);
 
   useEffect(() => {
@@ -67,19 +83,23 @@ export default function Output() {
   const handleRegenerate = useCallback(() => {
     if (!bookData) return;
     setEditedTitles({});
-    setBookData({
-      ...bookData,
-      dhm: generateDHM({
-        title: bookData.title,
-        audience: bookData.audience,
-        goal: bookData.goal,
-        genre: bookData.genre,
-        plan: bookData.plan,
-        chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
-        syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
-        syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
-      }),
-    });
+    setRefreshing(true);
+    setRefreshError(null);
+    void requestDhmGeneration({
+      title: bookData.title,
+      audience: bookData.audience,
+      goal: bookData.goal,
+      genre: bookData.genre,
+      plan: bookData.plan,
+      chapterSyntaxMatrix: bookData.chapterSyntaxMatrix,
+      syntaxVaryPerChapter: bookData.syntaxVaryPerChapter !== false,
+      syntaxAlwaysLeadWithStory: bookData.syntaxAlwaysLeadWithStory === true,
+    })
+      .then((dhm) => setBookData({ ...bookData, dhm }))
+      .catch((err) =>
+        setRefreshError(err instanceof Error ? err.message : "Could not regenerate this outline."),
+      )
+      .finally(() => setRefreshing(false));
   }, [bookData, setBookData]);
 
   const handleDownloadPdf = useCallback(() => {
@@ -92,9 +112,39 @@ export default function Output() {
     await downloadDHMDocx(bookData, bookData.dhm, editedTitles);
   }, [bookData, editedTitles]);
 
-  if (!bookData?.dhm || !dhmMatchesCurrentEngine(bookData.dhm)) return null;
+  if (!bookData) return null;
+  const outlineReady = Boolean(bookData.dhm && dhmMatchesCurrentEngine(bookData.dhm));
+  if (!outlineReady) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-[100dvh] flex items-center justify-center px-6"
+      >
+        <motion.div className="max-w-md text-center space-y-4">
+          {refreshing ? (
+            <>
+              <p className="text-lg font-medium">Generating your Double Helix Map…</p>
+              <p className="text-sm text-muted-foreground">
+                Gemini runs on the API server and may take up to a minute.
+              </p>
+            </>
+          ) : null}
+          {refreshError ? (
+            <>
+              <p className="text-lg font-medium">Outline generation failed</p>
+              <p className="text-sm text-destructive">{refreshError}</p>
+              <Button variant="outline" asChild>
+                <Link href="/dashboard">Back to dashboard</Link>
+              </Button>
+            </>
+          ) : null}
+        </motion.div>
+      </motion.div>
+    );
+  }
 
-  const { dhm } = bookData;
+  const dhm = bookData.dhm!;
   const planKey = normalizePlan(bookData.plan);
   const revisionLabel =
     dhm.revisionAllowance === "custom"

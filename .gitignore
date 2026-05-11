@@ -50,3 +50,8 @@ Thumbs.db
 
 # SAYBOOK community feedback JSON store (API server)
 **/saybook-feedback.json
+
+# Local secrets
+.env
+.env.local
+.env.*.local

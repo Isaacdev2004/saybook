@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { z } from "zod";
-import { generateDHM } from "@workspace/dhm-engine";
+import { generateDhmWithGemini } from "../services/geminiDhm";
 
 const GenerateDHMBodySchema = z.object({
   title: z.string().min(2),
@@ -8,7 +8,6 @@ const GenerateDHMBodySchema = z.object({
   goal: z.string().min(10),
   genre: z.string().optional(),
   plan: z.string().min(1),
-  /** Slash-separated strands of three SAY letters (S/Y/A), e.g. SYA or SYA/YAA/AYA */
   chapterSyntaxMatrix: z.string().optional(),
   syntaxVaryPerChapter: z.boolean().optional(),
   syntaxAlwaysLeadWithStory: z.boolean().optional(),
@@ -16,8 +15,7 @@ const GenerateDHMBodySchema = z.object({
 
 const router: IRouter = Router();
 
-/** Mock DHM endpoint — same logic as the SAYBOOK client; ready for AI swap later. */
-router.post("/dhm", (req, res) => {
+router.post("/dhm", async (req, res) => {
   const parsed = GenerateDHMBodySchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
@@ -28,18 +26,24 @@ router.post("/dhm", (req, res) => {
   }
 
   const body = parsed.data;
-  const result = generateDHM({
-    title: body.title,
-    audience: body.audience,
-    goal: body.goal,
-    genre: body.genre,
-    plan: body.plan,
-    chapterSyntaxMatrix: body.chapterSyntaxMatrix,
-    syntaxVaryPerChapter: body.syntaxVaryPerChapter,
-    syntaxAlwaysLeadWithStory: body.syntaxAlwaysLeadWithStory,
-  });
 
-  res.json(result);
+  try {
+    const result = await generateDhmWithGemini({
+      title: body.title,
+      audience: body.audience,
+      goal: body.goal,
+      genre: body.genre,
+      plan: body.plan,
+      chapterSyntaxMatrix: body.chapterSyntaxMatrix,
+      syntaxVaryPerChapter: body.syntaxVaryPerChapter,
+      syntaxAlwaysLeadWithStory: body.syntaxAlwaysLeadWithStory,
+    });
+    res.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "DHM generation failed.";
+    const status = message.includes("GEMINI_API_KEY") ? 503 : 502;
+    res.status(status).json({ error: "dhm_generation_failed", message });
+  }
 });
 
 export default router;

@@ -1,14 +1,4 @@
-﻿import { buildBookContext, type BookContext } from "./bookContext";
-import { chapterPlanFor, pickSayPour } from "./chapterOutlines";
-import { getPlanLimits, normalizePlan } from "./planLimits";
-import {
-  labelForCode,
-  normalizeChapterSyntaxMatrix,
-  parseStrandPatterns,
-  varyChapterMatrix,
-  type SAYCode,
-  type VaryMatrixOptions,
-} from "./syntax";
+﻿import type { SAYCode } from "./syntax";
 
 export type { SAYCode } from "./syntax";
 
@@ -59,7 +49,7 @@ export interface DHMResult {
 }
 
 /** Current DHM engine revision â€” bump when structure or weaving rules change. */
-export const DHM_ENGINE_VERSION = 3;
+export const DHM_ENGINE_VERSION = 4;
 
 export interface GenerateDHMInput {
   title: string;
@@ -147,102 +137,12 @@ export function joinThesisParagraph(sentences: string[], options?: JoinThesisOpt
   return out;
 }
 
-function buildStrandsForChapter(matrix: string, globalChapterIndex: number, ctx: BookContext): Strand[] {
-  const patterns = parseStrandPatterns(matrix);
-  const plan = chapterPlanFor(globalChapterIndex, ctx, patterns.length);
-  return patterns.map((pattern, strandIdx) => {
-    const strandPlan = plan.strands[strandIdx]!;
-    const counts: Partial<Record<SAYCode, number>> = {};
-    const chars = pattern.split("") as SAYCode[];
-    const points: SAYPoint[] = chars.map((code) => {
-      const occurrence = counts[code] ?? 0;
-      counts[code] = occurrence + 1;
-      const slot = pickSayPour(strandPlan, code, occurrence);
-      return {
-        code,
-        label: labelForCode(code),
-        pointTheme: slot.theme,
-        guidance: slot.guidance,
-      };
-    });
-    return { index: strandIdx + 1, strandThesis: strandPlan.thesis, pattern, points };
-  });
-}
-
 /** Book-level Story of Thesis: verbatim weave of each chapterâ€™s Story of Thesis paragraph. */
 export function buildStoryOfThesis(chapterStoryParagraphs: string[], markerOffset = 0): string {
   return joinThesisParagraph(chapterStoryParagraphs, { tier: "book", markerOffset });
 }
 
-function pushChapter(
-  bucket: DHMChapter[],
-  num: number,
-  globalChapterIndex: number,
-  ctx: BookContext,
-  matrixTemplate: string,
-  syntaxOpts: VaryMatrixOptions,
-): void {
-  const matrix = varyChapterMatrix(matrixTemplate, globalChapterIndex, syntaxOpts);
-  const plan = chapterPlanFor(globalChapterIndex, ctx, parseStrandPatterns(matrix).length);
-  const strands = buildStrandsForChapter(matrix, globalChapterIndex, ctx);
-  const chapterStoryOfThesis = joinThesisParagraph(strands.map((s) => s.strandThesis), {
-    tier: "chapter",
-    markerOffset: globalChapterIndex,
-  });
-  bucket.push({
-    num,
-    title: plan.title,
-    chapterStoryOfThesis,
-    strands,
-    chapterSyntaxMatrix: matrix,
-  });
-}
-
-export function generateDHM(input: GenerateDHMInput): DHMResult {
-  const planId = normalizePlan(input.plan);
-  const { chapters: chapterLimit, revisions } = getPlanLimits(planId);
-  const matrixTemplate = normalizeChapterSyntaxMatrix(input.chapterSyntaxMatrix);
-  const ctx = buildBookContext(input);
-
-  const syntaxOpts: VaryMatrixOptions = {
-    varyPerChapter: input.syntaxVaryPerChapter !== false,
-    alwaysLeadWithStory: input.syntaxAlwaysLeadWithStory === true,
-  };
-
-  const [na, nr, nc] = splitArcChapterCounts(chapterLimit);
-
-  const awareness: DHMChapter[] = [];
-  const resolution: DHMChapter[] = [];
-  const callToAction: DHMChapter[] = [];
-
-  let globalNum = 1;
-  let globalChapterIndex = 0;
-
-  for (let i = 0; i < na; i++) {
-    pushChapter(awareness, globalNum++, globalChapterIndex++, ctx, matrixTemplate, syntaxOpts);
-  }
-  for (let i = 0; i < nr; i++) {
-    pushChapter(resolution, globalNum++, globalChapterIndex++, ctx, matrixTemplate, syntaxOpts);
-  }
-  for (let i = 0; i < nc; i++) {
-    pushChapter(callToAction, globalNum++, globalChapterIndex++, ctx, matrixTemplate, syntaxOpts);
-  }
-
-  const chapterStoriesOrdered = [
-    ...awareness.map((c) => c.chapterStoryOfThesis),
-    ...resolution.map((c) => c.chapterStoryOfThesis),
-    ...callToAction.map((c) => c.chapterStoryOfThesis),
-  ];
-
-  const storyOfThesis = buildStoryOfThesis(chapterStoriesOrdered, chapterStoriesOrdered.length);
-
-  return {
-    arc: { awareness, resolution, callToAction },
-    chapterLimit,
-    revisionAllowance: revisions,
-    plan: planId,
-    storyOfThesis,
-    chapterSyntaxMatrix: matrixTemplate,
-    dhmEngineVersion: DHM_ENGINE_VERSION,
-  };
+/** @deprecated Template outlines are disabled — use POST /api/dhm (Gemini) instead. */
+export function generateDHM(_input: GenerateDHMInput): DHMResult {
+  throw new Error("Template DHM generation is disabled. Call POST /api/dhm on the API server.");
 }
