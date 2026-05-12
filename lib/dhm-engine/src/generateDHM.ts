@@ -1,4 +1,4 @@
-﻿import type { SAYCode } from "./syntax";
+import type { SAYCode } from "./syntax";
 
 export type { SAYCode } from "./syntax";
 
@@ -49,7 +49,7 @@ export interface DHMResult {
 }
 
 /** Current DHM engine revision â€” bump when structure or weaving rules change. */
-export const DHM_ENGINE_VERSION = 4;
+export const DHM_ENGINE_VERSION = 5;
 
 export interface GenerateDHMInput {
   title: string;
@@ -137,9 +137,18 @@ export function joinThesisParagraph(sentences: string[], options?: JoinThesisOpt
   return out;
 }
 
-/** Book-level Story of Thesis: verbatim weave of each chapterâ€™s Story of Thesis paragraph. */
-export function buildStoryOfThesis(chapterStoryParagraphs: string[], markerOffset = 0): string {
-  return joinThesisParagraph(chapterStoryParagraphs, { tier: "book", markerOffset });
+/** Book-level Story of Thesis: one paragraph per chapter summary, in order. */
+export function buildStoryOfThesis(chapterStoryParagraphs: string[], _markerOffset = 0): string {
+  return chapterStoryParagraphs
+    .map((s) => s.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+export function listBookStoryParagraphs(dhm: Pick<DHMResult, "arc">): string[] {
+  return [...dhm.arc.awareness, ...dhm.arc.resolution, ...dhm.arc.callToAction]
+    .map((chapter) => chapter.chapterStoryOfThesis.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
 }
 
 /** @deprecated Template outlines are disabled — use POST /api/dhm (Gemini) instead. */

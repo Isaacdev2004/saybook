@@ -93,11 +93,14 @@ export function goalIntentShort(goal: string, salt: number): string {
  */
 export function toPdfSafeText(s: string): string {
   return s
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[\u2018\u2019\u201A\u2032]/g, "'")
     .replace(/[\u201C\u201D\u201E\u2033]/g, '"')
-    .replace(/[\u2013\u2014\u2212]/g, "-")
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-")
     .replace(/…/g, "...")
     .replace(/[\u00A0\u2007\u202F]/g, " ")
     .replace(/[\u2022\u00B7]/g, "-")
+    .replace(/\u00D7/g, "x")
     .replace(/[\u2192\u279C]/g, "->");
 }

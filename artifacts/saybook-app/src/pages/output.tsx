@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { DHMOutput } from "@/components/DHMOutput";
-import { DHM_ENGINE_VERSION, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
+import { DHM_ENGINE_VERSION, listBookStoryParagraphs, normalizePlan, type DHMResult } from "@workspace/dhm-engine";
 import { requestDhmGeneration } from "@/lib/dhmApi";
 import { Download, RefreshCw, BookOpen, ArrowUp, Sparkles, TrendingUp, FileType2 } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
@@ -308,8 +308,15 @@ export default function Output() {
                 One paragraph built by joining every chapter’s Story of Thesis summary in order (discourse markers only between chapters). Strand thesis wording stays intact inside each chapter summary. Export to PDF or MS Word (.docx) for workshops or editors.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <p className="text-foreground leading-relaxed font-serif text-lg md:text-xl tracking-tight">{dhm.storyOfThesis}</p>
+            <CardContent className="space-y-4">
+              {listBookStoryParagraphs(dhm).map((paragraph, index) => (
+                <p
+                  key={index}
+                  className="text-foreground leading-relaxed font-serif text-lg md:text-xl tracking-tight text-justify"
+                >
+                  {paragraph}
+                </p>
+              ))}
             </CardContent>
           </Card>
         </motion.div>

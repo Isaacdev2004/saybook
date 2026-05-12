@@ -1,4 +1,5 @@
 import {
+  AlignmentType,
   Document,
   HeadingLevel,
   PageBreak,
@@ -8,7 +9,9 @@ import {
 } from "docx";
 import type { BookData } from "@/lib/store";
 import type { DHMChapter, DHMResult } from "@workspace/dhm-engine";
-import { SYNTAX_KEY_BLOCK, pointThemeHeading } from "@workspace/dhm-engine";
+import { SYNTAX_KEY_BLOCK, listBookStoryParagraphs, pointThemeHeading } from "@workspace/dhm-engine";
+
+const BOOK_SUMMARY_HEADING = "Story of Thesis — Book Summary";
 
 function sanitizeFilename(title: string): string {
   const s = title
@@ -30,8 +33,9 @@ function pHeading(text: string, level: (typeof HeadingLevel)[keyof typeof Headin
   });
 }
 
-function pBody(text: string, bold = false): Paragraph {
+function pBody(text: string, bold = false, justify = true): Paragraph {
   return new Paragraph({
+    alignment: justify ? AlignmentType.JUSTIFIED : undefined,
     spacing: { after: 100 },
     children: [new TextRun({ text: text.replace(/\s+/g, " ").trim(), bold })],
   });
@@ -96,13 +100,17 @@ export async function downloadDHMDocx(bookData: BookData, dhm: DHMResult, edited
   }
 
   blocks.push(pPageBreak());
-  blocks.push(pHeading("Story of Thesis — Book level", HeadingLevel.HEADING_1));
+  blocks.push(pHeading(BOOK_SUMMARY_HEADING, HeadingLevel.HEADING_1));
   blocks.push(
     pBody(
       "Joined chapter summaries (strand wording preserved inside each chapter summary).",
+      false,
+      false,
     ),
   );
-  blocks.push(pBody(dhm.storyOfThesis));
+  for (const paragraph of listBookStoryParagraphs(dhm)) {
+    blocks.push(pBody(paragraph));
+  }
 
   const doc = new Document({
     sections: [{ properties: {}, children: blocks }],
